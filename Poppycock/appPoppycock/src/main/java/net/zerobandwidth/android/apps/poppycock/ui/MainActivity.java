@@ -1,12 +1,18 @@
-package net.zerobandwidth.android.apps.poppycock;
+package net.zerobandwidth.android.apps.poppycock.ui;
 
+import android.app.Service;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import net.zerobandwidth.android.apps.poppycock.PoppycockService;
+import net.zerobandwidth.android.apps.poppycock.R;
 import net.zerobandwidth.android.lib.nonsense.NonsenseBuilder;
+import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
 
 /**
  * The app's main activity.
@@ -14,6 +20,7 @@ import net.zerobandwidth.android.lib.nonsense.NonsenseBuilder;
  */
 public class MainActivity
 extends AppCompatActivity
+implements SimpleServiceConnection.Listener
 {
     public static final String LOG_TAG = MainActivity.class.getSimpleName() ;
 
@@ -22,7 +29,15 @@ extends AppCompatActivity
      * nonsense.
      */
     protected static final String EXTRA_LAST_NONSENSE =
-        "net.zerobandwidth.android.apps.poppycock.MainActivity.LAST_NONSENSE" ;
+        "net.zerobandwidth.android.apps.poppycock.ui.MainActivity.LAST_NONSENSE" ;
+
+/// Instance Members ///////////////////////////////////////////////////////////
+
+    /**
+     * A connection to the service which produces nonsense.
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     */
+    protected SimpleServiceConnection<PoppycockService> m_conn = null ;
 
     /** The nonsense generator. */
     protected NonsenseBuilder m_xyzzy = null ;
@@ -42,12 +57,12 @@ extends AppCompatActivity
         if( m_xyzzy == null ) m_xyzzy = new NonsenseBuilder(this) ;
         this.setContentView( R.layout.activity_poppycock_main ) ;
         this.bindToElements().restoreText(bndlState) ;
+        PoppycockService.API.kickoff(this) ;
     }
 
     /**
      * Binds persistent references to all of the elements of the layout that we
      * will modify programmatically.
-     *
      * @return (fluid)
      */
     protected MainActivity bindToElements()
@@ -59,7 +74,6 @@ extends AppCompatActivity
     /**
      * Restores the last bit of nonsense we generated, or generates new nonsense
      * if we haven't created any yet.
-     *
      * @param bndlState the prior activity state
      * @return (fluid)
      */
@@ -82,7 +96,23 @@ extends AppCompatActivity
     public void onResume()
     {
         super.onResume() ;
-        this.refreshNonsense( m_sLastNonsense ) ;
+        this.bindToService().refreshNonsense( m_sLastNonsense ) ;
+    }
+
+    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    @Override
+    public boolean onCreateOptionsMenu( Menu menu )
+    {
+        this.getMenuInflater().inflate( R.menu.menu_poppycock_main, menu ) ;
+        return true ;
+    }
+
+    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    @Override
+    public void onPause()
+    {
+        m_sLastNonsense = m_twNonsense.getText().toString() ;
+        super.onPause() ;
     }
 
     @Override
@@ -91,6 +121,64 @@ extends AppCompatActivity
         super.onSaveInstanceState(bndlState) ;
         bndlState.putCharSequence( EXTRA_LAST_NONSENSE, m_twNonsense.getText() ) ;
     }
+
+    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    @Override
+    public void onDestroy()
+    {
+        if( m_conn != null && m_conn.isBound() )
+        { // Release our service binding.
+            m_conn.removeListener(this).disconnect(this) ;
+        }
+        super.onDestroy() ;
+    }
+
+/// SimpleServiceConnection<>.Listener /////////////////////////////////////////
+
+    /**
+     * Binds the activity to the {@link PoppycockService}.
+     * @return (fluid)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     */
+    protected MainActivity bindToService()
+    {
+        Log.d( LOG_TAG, "Connecting to service..." ) ;
+        if( m_conn == null )
+            m_conn = new SimpleServiceConnection<>( PoppycockService.class ) ;
+        m_conn.addListener(this).connect(this) ;
+        return this ;
+    }
+
+    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    @Override
+    public <S extends Service> void onServiceConnected( SimpleServiceConnection<S> conn )
+    {
+        if( ! conn.isServiceClass( PoppycockService.class ) ) return ;
+        Log.d( LOG_TAG, "Connected to service." ) ;
+    }
+
+    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    @Override
+    public <S extends Service> void onServiceDisconnected( SimpleServiceConnection<S> conn )
+    { Log.d( LOG_TAG, "Disconnected from service." ) ; }
+
+/// AppCompatActivity //////////////////////////////////////////////////////////
+
+    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    @Override
+    public boolean onOptionsItemSelected( MenuItem mi )
+    {
+        final int nItem = mi.getItemId() ;
+        switch( nItem )
+        {
+            case R.id.miHistory:
+                this.openHistoryScreen() ;
+                break ;
+        }
+
+        return super.onOptionsItemSelected(mi) ;
+    }
+
 
 /// Other Instance Methods /////////////////////////////////////////////////////
 
@@ -101,6 +189,18 @@ extends AppCompatActivity
      */
     public void onNextNonsenseClicked( View w )
     { this.refreshNonsense( m_xyzzy.getString() ) ; }
+
+    /**
+     * Navigates to the screen where the user can view the historical record of
+     * nonsense.
+     * @return (fluid)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     */
+    public MainActivity openHistoryScreen()
+    {
+        Log.d( LOG_TAG, "Yep, tapped the history button!" ) ;
+        return this ;
+    }
 
     /**
      * Redraws the nonsense text view on the UI thread.
