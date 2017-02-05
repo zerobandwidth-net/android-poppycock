@@ -3,15 +3,30 @@ package net.zerobandwidth.android.apps.poppycock.ui;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import net.zerobandwidth.android.apps.poppycock.PoppycockService;
 import net.zerobandwidth.android.apps.poppycock.R;
+import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
+import net.zerobandwidth.android.apps.poppycock.model.Sentence;
 import net.zerobandwidth.android.lib.AppUtils;
 import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * This activity shows the historical record of nonsense, or the nonsense hall
@@ -69,6 +84,109 @@ implements SimpleServiceConnection.Listener
         }
     }
 
+/// Inner Classes //////////////////////////////////////////////////////////////
+
+    /**
+     * Adapter for the view that shows the list of sentences in the historical
+     * record.
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     */
+    protected class SentenceListAdapter
+    extends ArrayAdapter<Sentence>
+    {
+        /** The context in which the adapter was created. */
+        protected Context m_ctx = null ;
+
+        /** The list of sentences to be displayed. */
+        protected List<Sentence> m_aoSentences = null ;
+
+        public SentenceListAdapter( Context ctx, int resListViewID, List<Sentence> aoSentences )
+        {
+            super( ctx, resListViewID, aoSentences ) ;
+            this.m_ctx = ctx ;
+            this.m_aoSentences = aoSentences ;
+        }
+
+        @NonNull
+        @Override
+        public View getView( int nIndex, View w, @NonNull ViewGroup awParent )
+        {
+            final Sentence oSentence = this.m_aoSentences.get(nIndex) ;
+
+            LayoutInflater infl = ((LayoutInflater)
+                ( m_ctx.getSystemService( Context.LAYOUT_INFLATER_SERVICE ) )) ;
+            View wRow = infl.inflate(
+                    R.layout.listitem_poppycock_sentence, awParent, false ) ;
+
+            ImageButton btnFavorite = ((ImageButton)
+                        ( wRow.findViewById( R.id.btnFavorite ) )) ;
+            if( oSentence.bIsFavorite )
+            {
+                btnFavorite.setImageResource(
+                        R.drawable.ic_favorite_black_24dp ) ;
+                btnFavorite.setContentDescription( this.m_ctx.getString(
+                        R.string.label_btnFavoriteTrue ) ) ;
+            }
+            else
+            {
+                btnFavorite.setImageResource(
+                        R.drawable.ic_favorite_border_black_24dp ) ;
+                btnFavorite.setContentDescription( this.m_ctx.getString(
+                        R.string.label_btnFavoriteFalse ) ) ;
+            }
+            btnFavorite.setOnClickListener(
+                    new FavoriteButtonClickListener( oSentence ) ) ;
+
+            TextView twHistoricalNonsense = ((TextView)
+                        ( wRow.findViewById( R.id.twHistoricalNonsense ) )) ;
+            twHistoricalNonsense.setText(
+                    this.m_aoSentences.get(nIndex).sSentence ) ;
+
+            TextView twDate = ((TextView)
+                        ( wRow.findViewById( R.id.twHistoricalDate ) )) ;
+            twDate.setText( SimpleDateFormat.getDateTimeInstance()
+                        .format( new Date( oSentence.nItemTS ) )) ;
+
+            return wRow ;
+        }
+    }
+
+    /**
+     * Handles the event where the user has clicked on the favorite indicator.
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     */
+    protected class FavoriteButtonClickListener
+    implements View.OnClickListener
+    {
+        /**
+         * A reference to the bit of nonsense that corresponds to this element.
+         */
+        protected Sentence m_oSentence = null ;
+
+        /**
+         * A constructor which binds the listener to a sentence instance.
+         * @param oSentence the bit of nonsense to bind
+         */
+        public FavoriteButtonClickListener( Sentence oSentence )
+        {
+            super() ;
+            m_oSentence = oSentence ;
+        }
+
+        @Override
+        public void onClick( View w )
+        {
+            Log.d( LOG_TAG, (new StringBuilder())
+                    .append( "Clicked favorite button for sentence [" )
+                    .append( m_oSentence.nItemID )
+                    .append( "]: " )
+                    .append( m_oSentence.sSentence )
+                    .toString()
+                );
+            Log.d( LOG_TAG, "Save the rest of the work for issue 3! ^_^" ) ;
+        }
+    }
+
 /// Instance Members ///////////////////////////////////////////////////////////
 
     /** A connection to the service which deals with historical nonsense. */
@@ -79,6 +197,11 @@ implements SimpleServiceConnection.Listener
      * Defaults to "historical record" mode.
      */
     protected int m_mMode = API.MODE_HISTORY ;
+
+    /**
+     * A persistent binding to the list of historical records.
+     */
+    protected ListView m_awSentences = null ;
 
 /// Activity Lifecycle /////////////////////////////////////////////////////////
 
@@ -102,6 +225,7 @@ implements SimpleServiceConnection.Listener
         }
         AppUtils.initBackButtonForActivity(this) ;
         PoppycockService.API.kickoff(this) ;                 // Just in case...?
+        m_awSentences = ((ListView)(this.findViewById( R.id.awSentences ))) ;
     }
 
     @Override
@@ -135,6 +259,7 @@ implements SimpleServiceConnection.Listener
     {
         if( ! conn.isServiceClass( PoppycockService.class ) ) return ;
         Log.d( LOG_TAG, "Connected to service." ) ;
+        this.populate() ;
     }
 
     @Override
@@ -158,5 +283,25 @@ implements SimpleServiceConnection.Listener
 
 /// Other Instance Methods /////////////////////////////////////////////////////
 
+    /**
+     * Populates the screen with the appropriate historical records.
+     * @return (fluid)
+     */
+    protected HistoryActivity populate()
+    {
+        ArrayList<Sentence> aoSentences = null ;
+        if( m_conn != null && m_conn.isConnected() )
+        {
+            PoppycockDatabase db = m_conn.getServiceInstance().getDB() ;
+            if( db.isConnected() )
+                aoSentences = db.getHistory(true) ;
+        }
+        else aoSentences = new ArrayList<>() ;
 
+        final SentenceListAdapter adapter = new SentenceListAdapter( this,
+            R.layout.listitem_poppycock_sentence, aoSentences ) ;
+        m_awSentences.setAdapter( adapter ) ;
+
+        return this ;
+    }
 }

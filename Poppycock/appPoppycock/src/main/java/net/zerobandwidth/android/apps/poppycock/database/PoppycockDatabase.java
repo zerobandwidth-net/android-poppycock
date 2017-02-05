@@ -135,7 +135,7 @@ extends SQLitePortal
      *                     or newest-first ({@code false})
      * @return all the nonsense
      */
-    public synchronized List<Sentence> getHistory( boolean bOldestFirst )
+    public synchronized ArrayList<Sentence> getHistory( boolean bOldestFirst )
     {
         if( m_db == null ) return null ;
         ArrayList<Sentence> ao = new ArrayList<>() ;

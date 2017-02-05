@@ -6,6 +6,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".ui.HistoryActivity">
+    tools:context=".ui.HistoryActivity"
+    >
+
+    <ListView
+        android:id="@+id/awSentences"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+    </ListView>
 
 </LinearLayout>
