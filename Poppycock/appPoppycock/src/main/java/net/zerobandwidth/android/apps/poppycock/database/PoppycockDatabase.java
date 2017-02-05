@@ -129,11 +129,43 @@ extends SQLitePortal
         return o ;
     }
 
+    public synchronized ArrayList<Sentence> getFavorites( boolean bOldestFirst )
+    {
+        if( m_db == null ) return null ;
+        ArrayList<Sentence> ao = new ArrayList<>() ;
+        Cursor crs = null ;
+        try
+        {
+            crs = m_db.query( SENTENCE_TABLE_NAME, null, "favorite=?",
+                    new String[] { Integer.toString(boolToInt(true)) },
+                    null, null,
+                    ( bOldestFirst ? "item_ts ASC" : "item_ts DESC" ), null ) ;
+            final int nCount = crs.getCount() ;
+            Log.d( LOG_TAG, (new StringBuilder())
+                    .append( "Retrieved [" )
+                    .append( nCount )
+                    .append(( nCount == 1 ? "] item " : "] items " ))
+                    .append( "from the Nonsense Hall of Fame." )
+                    .toString()
+                );
+            if( crs.moveToFirst() )
+            {
+                do ao.add( Sentence.fromCursor(crs) ) ;
+                while( crs.moveToNext() ) ;
+            }
+        }
+        finally
+        { SQLitePortal.closeCursor(crs) ; }
+
+        return ao ;
+    }
+
     /**
      * Reads all the nonsense from the historical record.
      * @param bOldestFirst specifies whether to sort oldest-first ({@code true})
      *                     or newest-first ({@code false})
      * @return all the nonsense
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
      */
     public synchronized ArrayList<Sentence> getHistory( boolean bOldestFirst )
     {
@@ -144,6 +176,14 @@ extends SQLitePortal
         {
             crs = m_db.query( SENTENCE_TABLE_NAME, null, null, null, null, null,
                     ( bOldestFirst ? "item_ts ASC" : "item_ts DESC" ), null ) ;
+            final int nCount = crs.getCount() ;
+            Log.d( LOG_TAG, (new StringBuilder())
+                    .append( "Retrieved [" )
+                    .append( nCount )
+                    .append(( nCount == 1 ? "] item " : "] items " ))
+                    .append( "from the Historical Record." )
+                    .toString()
+                );
             if( crs.moveToFirst() )
             {
                 do ao.add( Sentence.fromCursor(crs) ) ;
@@ -152,7 +192,29 @@ extends SQLitePortal
         }
         finally
         { SQLitePortal.closeCursor(crs) ; }
+
         return ao ;
+    }
+
+	/**
+	 * Anoints some nonsense to the hall of fame, or demotes it to obscurity.
+     * @param o the sentence to be toggled
+     * @return the updated sentence
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    public synchronized Sentence toggleFavorite( Sentence o )
+    {
+        if( m_db == null ) return null ;
+        o.bIsFavorite = ! o.bIsFavorite ;
+        final int nUpdated =m_db.update( SENTENCE_TABLE_NAME,
+                o.toContentValues(), "item_id=?",
+                new String[] { Long.toString( o.nItemID ) } ) ;
+        Log.d( LOG_TAG, (new StringBuilder())
+                .append( "Updated [" ).append( nUpdated )
+                .append(( nUpdated == 1 ? "] row." : "] rows." ))
+                .toString()
+            );
+        return o ;
     }
 
 	/**

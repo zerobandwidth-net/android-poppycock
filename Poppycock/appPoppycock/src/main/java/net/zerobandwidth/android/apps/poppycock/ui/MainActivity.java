@@ -176,6 +176,9 @@ implements SimpleServiceConnection.Listener
             case R.id.miHistory:
                 this.openHistoryScreen(null) ;
                 break ;
+//            case R.id.miFavorites:
+//                this.openFavoritesScreen(null) ;
+//                break ;
         }
 
         return super.onOptionsItemSelected(mi) ;
@@ -190,6 +193,17 @@ implements SimpleServiceConnection.Listener
      */
     public void onNextNonsenseClicked( View w )
     { this.refreshNonsenseOnScreen( this.regenerateNonsense() ) ; }
+
+	/**
+	 * Navigates to the screen where the user can view the Nonsense Hall of
+     * Fame.
+     * @param w the control that was tapped, if any (ignored)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @deprecated This approach failed; the code is left behind to wait for
+     *  better ideas.
+     */
+//    public void openFavoritesScreen( View w )
+//    { HistoryActivity.API.startFavoritesActivity(this) ; }
 
     /**
      * Navigates to the screen where the user can view the historical record of

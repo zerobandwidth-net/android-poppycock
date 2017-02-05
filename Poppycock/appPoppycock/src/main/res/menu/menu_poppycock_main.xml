@@ -13,4 +13,11 @@
           app:showAsAction="ifRoom"
           />
 
+    <!-- item android:id="@+id/miFavorites"
+          android:title="@string/label_miFavorites"
+          android:icon="@drawable/ic_favorite_black_24dp"
+          android:orderInCategory="2"
+          app:showAsAction="ifRoom"
+          / -->
+
 </menu>

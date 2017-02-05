@@ -32,6 +32,7 @@
             android:layout_marginBottom="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
+            android:textIsSelectable="true"
             style="@android:style/TextAppearance.Medium"
             />
 

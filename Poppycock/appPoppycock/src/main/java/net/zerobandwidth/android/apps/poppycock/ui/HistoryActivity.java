@@ -24,6 +24,7 @@ import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
 import net.zerobandwidth.android.apps.poppycock.model.Sentence;
 import net.zerobandwidth.android.lib.AppUtils;
 import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
+import net.zerobandwidth.android.lib.ui.MultitapAlertCompatDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -78,6 +79,7 @@ implements SimpleServiceConnection.Listener
          */
         public static void startHistoryActivity( Context ctx )
         {
+            Log.d( LOG_TAG, "Kicking off history activity..." ) ;
             Intent sig = new Intent( ctx, HistoryActivity.class ) ;
             sig.putExtra( EXTRA_TAG_MODE, MODE_HISTORY ) ;
             ctx.startActivity(sig) ;
@@ -86,13 +88,16 @@ implements SimpleServiceConnection.Listener
         /**
          * Start the activity in "nonsense hall of fame" mode.
          * @param ctx the context which is requesting the activity.
+         * @deprecated This approach failed; the code is left behind to wait for
+         *  better ideas.
          */
-        public static void startFavoritesActivity( Context ctx )
-        {
-            Intent sig = new Intent( ctx, HistoryActivity.class ) ;
-            sig.putExtra( EXTRA_TAG_MODE, MODE_FAVORITES ) ;
-            ctx.startActivity(sig) ;
-        }
+//        public static void startFavoritesActivity( Context ctx )
+//        {
+//            Log.d( LOG_TAG, "Kicking off favorites activity..." ) ;
+//            Intent sig = new Intent( ctx, HistoryActivity.class ) ;
+//            sig.putExtra( EXTRA_TAG_MODE, MODE_FAVORITES ) ;
+//            ctx.startActivity(sig) ;
+//        }
     }
 
 /// Inner Classes //////////////////////////////////////////////////////////////
@@ -167,8 +172,14 @@ implements SimpleServiceConnection.Listener
      * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
      */
     protected class FavoriteButtonClickListener
-    implements View.OnClickListener
+    implements ImageButton.OnClickListener
     {
+	    /**
+         * A persistent reference back to the activity.
+         * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+         */
+        final protected HistoryActivity m_act = HistoryActivity.this ;
+
         /**
          * A reference to the bit of nonsense that corresponds to this element.
          */
@@ -185,7 +196,7 @@ implements SimpleServiceConnection.Listener
         }
 
         @Override
-        public void onClick( View w )
+        public void onClick( final View w )
         {
             Log.d( LOG_TAG, (new StringBuilder())
                     .append( "Clicked favorite button for sentence [" )
@@ -194,7 +205,23 @@ implements SimpleServiceConnection.Listener
                     .append( m_oSentence.sSentence )
                     .toString()
                 );
-            Log.d( LOG_TAG, "Save the rest of the work for issue 3! ^_^" ) ;
+            final PoppycockDatabase db = this.m_act.getDBFromService() ;
+            if( db != null )
+            {
+                db.toggleFavorite( m_oSentence ) ;
+                m_act.runOnUiThread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        ((ImageButton)w).setImageResource((
+                                m_oSentence.bIsFavorite ?
+                                    R.drawable.ic_favorite_black_24dp :
+                                    R.drawable.ic_favorite_border_black_24dp
+                            )) ;
+                    }
+                });
+            }
         }
     }
 
@@ -239,6 +266,39 @@ implements SimpleServiceConnection.Listener
         }
     }
 
+	/**
+     * Purges nonsense from the historical record, and updates the UI.
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    protected class WinstonSmith
+    implements Runnable
+    {
+        protected final HistoryActivity m_act = HistoryActivity.this ;
+
+        protected int m_zDeletionSet = API.MODE_HISTORY ;
+
+        /** Defines which set of records should be deleted. */
+        public WinstonSmith( int zDeletionSet )
+        { this.m_zDeletionSet = zDeletionSet ; }
+
+        @Override
+        public void run()
+        {
+            final PoppycockDatabase db = this.m_act.getDBFromService() ;
+            if( db == null )
+            {
+                Toast.makeText( this.m_act, R.string.toast_DatabaseNoWorky,
+                        Toast.LENGTH_SHORT )
+                    .show()
+                    ;
+                return ;
+            }
+            db.delete(( m_zDeletionSet == API.MODE_FAVORITES )) ;
+            this.m_act.populate() ;
+        }
+
+    }
+
 /// Instance Members ///////////////////////////////////////////////////////////
 
     /** A connection to the service which deals with historical nonsense. */
@@ -248,7 +308,7 @@ implements SimpleServiceConnection.Listener
      * The current operating mode of the activity.
      * Defaults to "historical record" mode.
      */
-    protected int m_mMode = API.MODE_HISTORY ;
+    protected int m_zMode = API.MODE_HISTORY ;
 
     /**
      * A persistent binding to the list of historical records.
@@ -273,7 +333,26 @@ implements SimpleServiceConnection.Listener
      */
     protected MenuItem m_miDeleteHistory = null ;
 
+	/**
+     * A persistent binding to the menu item for switching window modes.
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    protected MenuItem m_miSwitchMode = null ;
+
 /// Activity Lifecycle /////////////////////////////////////////////////////////
+
+    /**
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @deprecated This approach failed; the code is left behind to wait for
+     *  better ideas.
+     */
+//    @Override
+//    protected void onNewIntent( Intent sig )
+//    {
+//        super.onNewIntent(sig) ;
+//        this.setIntent( sig ) ;
+//        this.processLastIntent() ;
+//    }
 
     @Override
     protected void onCreate( Bundle bndlState )
@@ -281,12 +360,14 @@ implements SimpleServiceConnection.Listener
         super.onCreate(bndlState) ;
         this.setContentView( R.layout.activity_poppycock_history ) ;
         if( bndlState != null )
-        { // Restore operating mode.
-            m_mMode = bndlState.getInt( API.EXTRA_TAG_MODE ) ;
+        { // Restore operating mode and sorting order.
+            m_zMode = bndlState.getInt( API.EXTRA_TAG_MODE ) ;
+            Log.d( LOG_TAG, ( m_zMode == API.MODE_FAVORITES ? "state bundle favorites" : "state bundle history" ) ) ;
             final int zSortOrder = bndlState.getInt( API.EXTRA_TAG_SORT_ORDER );
             m_zSortOrder = ( zSortOrder == 0 ? API.SORTING_ASC : zSortOrder ) ;
         }
-        switch( m_mMode )
+//        this.processLastIntent() ; // Overrides old state if got new intent.
+        switch( m_zMode )
         { // Set the title based on the mode we just discovered.
             case API.MODE_FAVORITES:
                 this.setTitle( R.string.title_HistoryActivity_favorites ) ;
@@ -304,9 +385,14 @@ implements SimpleServiceConnection.Listener
     public void onResume()
     {
         super.onResume() ;
+//        this.processLastIntent() ;
         if( m_conn == null )
             m_conn = new SimpleServiceConnection<>( PoppycockService.class ) ;
-        m_conn.addListener(this).connect(this) ;
+        if( m_conn.isConnected() )
+            this.populate() ;
+        else
+            m_conn.addListener(this).connect(this) ; // and populate on connect
+        this.updateTitleForMode() ;
     }
 
     @Override
@@ -320,6 +406,8 @@ implements SimpleServiceConnection.Listener
     public boolean onPrepareOptionsMenu( Menu menu )
     {
         m_miSortHistory = menu.findItem( R.id.miSortHistory ) ;
+        m_miSwitchMode = menu.findItem( R.id.miSwitchMode ) ;
+        this.updateModeMenuItem() ;
         m_miDeleteHistory = menu.findItem( R.id.miDeleteHistory ) ;
         this.updateSortMenuItem() ;
         return super.onPrepareOptionsMenu( menu ) ;
@@ -329,7 +417,7 @@ implements SimpleServiceConnection.Listener
     protected void onSaveInstanceState( Bundle bndlState )
     {
         super.onSaveInstanceState( bndlState ) ;
-        bndlState.putInt( API.EXTRA_TAG_MODE, m_mMode ) ;
+        bndlState.putInt( API.EXTRA_TAG_MODE, m_zMode ) ;
         bndlState.putInt( API.EXTRA_TAG_SORT_ORDER, m_zSortOrder ) ;
     }
 
@@ -369,6 +457,9 @@ implements SimpleServiceConnection.Listener
             case R.id.miSortHistory:
                 this.onSortButtonPressed() ;
                 break ;
+            case R.id.miSwitchMode:
+                this.switchMode() ;
+                break ;
             case R.id.miDeleteHistory:
                 this.onDeleteButtonPressed() ;
                 break ;
@@ -379,13 +470,59 @@ implements SimpleServiceConnection.Listener
 /// Other Instance Methods /////////////////////////////////////////////////////
 
 	/**
+     * Fetches the database only if it's usable.
+     * @return the app's database, only if it is usable, or {@code null} otherwise
+     */
+    protected PoppycockDatabase getDBFromService()
+    {
+        if( m_conn == null || ! m_conn.isConnected() ) return null ;
+        final PoppycockDatabase db = m_conn.getServiceInstance().getDB() ;
+        if( ! db.isConnected() ) return null ;  // It's no good to us like this.
+        return db ;
+    }
+
+	/**
      * Deletes the set of records corresponding to the current mode.
      * @return (fluid)
      */
     protected HistoryActivity onDeleteButtonPressed()
     {
-        Log.d( LOG_TAG, "Yep, pressed the delete button! Let's save this for issue #3!" ) ;
-        Toast.makeText( this, R.string.toast_StayTuned, Toast.LENGTH_SHORT ).show() ;
+        final PoppycockDatabase db = this.getDBFromService() ;
+        if( db == null )
+        { // Give up.
+            Log.e( LOG_TAG, "Database unavailable for delete operation." ) ;
+            Toast.makeText( this, R.string.toast_DatabaseNoWorky,
+                    Toast.LENGTH_SHORT )
+                .show()
+                ;
+            return this ;
+        }
+        switch( m_zMode )
+        {
+            case API.MODE_FAVORITES:
+            { // Delete only favorites.
+                (new MultitapAlertCompatDialog(
+                        this, R.string.title_DeleteFavorites,
+                        R.string.message_DeleteFavorites ))
+                    .setStandardButtons(
+                            new WinstonSmith(API.MODE_FAVORITES), null )
+                    .setPositiveTapsRequired(10)
+                    .show()
+                    ;
+            } break ;
+            case API.MODE_HISTORY:
+            default:
+            { // Delete only non-favorites.
+                (new MultitapAlertCompatDialog(
+                        this, R.string.title_DeleteHistory,
+                        R.string.message_DeleteHistory ))
+                    .setStandardButtons(
+                            new WinstonSmith(API.MODE_HISTORY), null )
+                    .setPositiveTapsRequired(3)
+                    .show()
+                    ;
+            }
+        }
         return this ;
     }
 
@@ -417,14 +554,14 @@ implements SimpleServiceConnection.Listener
     protected HistoryActivity populate()
     {
         ArrayList<Sentence> aoSentences = null ;
-        if( m_conn != null && m_conn.isConnected() )
+        final PoppycockDatabase db = this.getDBFromService() ;
+        if( db != null )
         {
-            PoppycockDatabase db = m_conn.getServiceInstance().getDB() ;
-            if( db.isConnected() )
-            {
-                aoSentences =
-                        db.getHistory(( m_zSortOrder != API.SORTING_DESC )) ;
-            }
+            final boolean bSortOrder = ( m_zSortOrder != API.SORTING_DESC ) ;
+            aoSentences = ( m_zMode == API.MODE_FAVORITES ?
+                    db.getFavorites( bSortOrder ) :
+                    db.getHistory( bSortOrder )
+                );
         }
         else aoSentences = new ArrayList<>() ;
 
@@ -432,6 +569,33 @@ implements SimpleServiceConnection.Listener
             R.layout.listitem_poppycock_sentence, aoSentences ) ;
         m_awSentences.setAdapter( adapter ) ;
 
+        return this ;
+    }
+
+	/**
+	 * Sets the operating mode based on extras in the last {@link Intent}.
+     * @return (fluid)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @deprecated This approach failed; the code is left behind to wait for
+     *  better ideas.
+     */
+//    protected HistoryActivity processLastIntent()
+//    {
+//        final Intent sig = this.getIntent() ;
+//        m_zMode = sig.getIntExtra( API.EXTRA_TAG_MODE, API.MODE_HISTORY ) ;
+//        return this ;
+//    }
+
+	/**
+	 * Switches operating mode in response to a button press.
+     * @return (fluid)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    protected HistoryActivity switchMode()
+    {
+        m_zMode = ( m_zMode == API.MODE_FAVORITES ?
+                API.MODE_HISTORY : API.MODE_FAVORITES ) ;
+        this.populate().updateModeMenuItem().updateTitleForMode() ;
         return this ;
     }
 
@@ -455,6 +619,55 @@ implements SimpleServiceConnection.Listener
         }
         this.runOnUiThread( new MenuItemUpdater(
                 m_miSortHistory, resLabel, resIcon ) ) ;
+
+        return this ;
+    }
+
+	/**
+	 * Updates the icon and caption for the mode switcher button.
+     * @return (fluid)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    protected HistoryActivity updateModeMenuItem()
+    {
+        int resLabel, resIcon ;
+        switch( m_zMode )
+        {
+            case API.MODE_FAVORITES:
+                resLabel = R.string.label_miHistoryMode_history ;
+                resIcon = R.drawable.ic_history_black_24dp ;
+                break ;
+            case API.MODE_HISTORY:
+            default:
+                resLabel = R.string.label_miHistoryMode_favorites ;
+                resIcon = R.drawable.ic_favorite_black_24dp ;
+        }
+        this.runOnUiThread( new MenuItemUpdater(
+                m_miSwitchMode, resLabel, resIcon ) ) ;
+
+        return this ;
+    }
+
+	/**
+     * Updates the window title in response to a mode switch.
+     * @return (fluid)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    protected HistoryActivity updateTitleForMode()
+    {
+        this.runOnUiThread( new Runnable()
+        {
+            protected final HistoryActivity m_act = HistoryActivity.this ;
+
+            @Override
+            public void run()
+            {
+                this.m_act.setTitle(( m_zMode == API.MODE_FAVORITES ?
+                        R.string.title_HistoryActivity_favorites :
+                        R.string.title_HistoryActivity_history )) ;
+            }
+        });
+
         return this ;
     }
 }
