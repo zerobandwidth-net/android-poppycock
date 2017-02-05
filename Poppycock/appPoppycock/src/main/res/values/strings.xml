@@ -7,9 +7,21 @@
     <string name="label_btnFavoriteTrue">Nonsense Hall of Fame Inductee</string>
     <string name="label_btnFavoriteFalse">Just unloved nonsense.</string>
 
+    <string name="label_miDeleteHistory">Delete&#8230;</string>
     <string name="label_miHistory">History&#8230;</string>
+    <string name="label_miHistoryMode_history">View the Historical Record</string>
+    <string name="label_miHistoryMode_favorites">View the Nonsense Hall of Fame</string>
+    <string name="label_miSort_asc">Oldest First</string>
+    <string name="label_miSort_desc">Newest First</string>
 
     <string name="title_HistoryActivity_history">The Historical Record</string>
     <string name="title_HistoryActivity_favorites">Nonsense Hall of Fame</string>
+
+    <string name="toast_SortOldestFirst">Oldest entries shown first.</string>
+    <string name="toast_SortNewestFirst">Newest entries shown first.</string>
+    <string name="toast_StayTuned">
+        This feature isn\'t quite done yet! Look for it in a future
+        version&#8230;
+    </string>
 
 </resources>
