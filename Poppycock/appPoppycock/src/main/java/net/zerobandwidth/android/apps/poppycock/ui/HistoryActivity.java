@@ -145,7 +145,7 @@ implements SimpleServiceConnection.Listener
             TextView twDate = ((TextView)
                         ( wRow.findViewById( R.id.twHistoricalDate ) )) ;
             twDate.setText( SimpleDateFormat.getDateTimeInstance()
-                        .format( new Date( oSentence.nItemTS ) )) ;
+                    .format( new Date( oSentence.nItemTS ) )) ;
 
             return wRow ;
         }
