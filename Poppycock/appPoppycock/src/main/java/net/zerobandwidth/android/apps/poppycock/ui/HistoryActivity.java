@@ -78,6 +78,7 @@ implements SimpleServiceConnection.Listener
          */
         public static void startHistoryActivity( Context ctx )
         {
+            Log.d( LOG_TAG, "Kicking off history activity..." ) ;
             Intent sig = new Intent( ctx, HistoryActivity.class ) ;
             sig.putExtra( EXTRA_TAG_MODE, MODE_HISTORY ) ;
             ctx.startActivity(sig) ;
@@ -86,13 +87,16 @@ implements SimpleServiceConnection.Listener
         /**
          * Start the activity in "nonsense hall of fame" mode.
          * @param ctx the context which is requesting the activity.
+         * @deprecated This approach failed; the code is left behind to wait for
+         *  better ideas.
          */
-        public static void startFavoritesActivity( Context ctx )
-        {
-            Intent sig = new Intent( ctx, HistoryActivity.class ) ;
-            sig.putExtra( EXTRA_TAG_MODE, MODE_FAVORITES ) ;
-            ctx.startActivity(sig) ;
-        }
+//        public static void startFavoritesActivity( Context ctx )
+//        {
+//            Log.d( LOG_TAG, "Kicking off favorites activity..." ) ;
+//            Intent sig = new Intent( ctx, HistoryActivity.class ) ;
+//            sig.putExtra( EXTRA_TAG_MODE, MODE_FAVORITES ) ;
+//            ctx.startActivity(sig) ;
+//        }
     }
 
 /// Inner Classes //////////////////////////////////////////////////////////////
@@ -297,7 +301,26 @@ implements SimpleServiceConnection.Listener
      */
     protected MenuItem m_miDeleteHistory = null ;
 
+	/**
+     * A persistent binding to the menu item for switching window modes.
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    protected MenuItem m_miSwitchMode = null ;
+
 /// Activity Lifecycle /////////////////////////////////////////////////////////
+
+    /**
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @deprecated This approach failed; the code is left behind to wait for
+     *  better ideas.
+     */
+//    @Override
+//    protected void onNewIntent( Intent sig )
+//    {
+//        super.onNewIntent(sig) ;
+//        this.setIntent( sig ) ;
+//        this.processLastIntent() ;
+//    }
 
     @Override
     protected void onCreate( Bundle bndlState )
@@ -305,11 +328,13 @@ implements SimpleServiceConnection.Listener
         super.onCreate(bndlState) ;
         this.setContentView( R.layout.activity_poppycock_history ) ;
         if( bndlState != null )
-        { // Restore operating mode.
+        { // Restore operating mode and sorting order.
             m_mMode = bndlState.getInt( API.EXTRA_TAG_MODE ) ;
+            Log.d( LOG_TAG, ( m_mMode == API.MODE_FAVORITES ? "state bundle favorites" : "state bundle history" ) ) ;
             final int zSortOrder = bndlState.getInt( API.EXTRA_TAG_SORT_ORDER );
             m_zSortOrder = ( zSortOrder == 0 ? API.SORTING_ASC : zSortOrder ) ;
         }
+//        this.processLastIntent() ; // Overrides old state if got new intent.
         switch( m_mMode )
         { // Set the title based on the mode we just discovered.
             case API.MODE_FAVORITES:
@@ -328,9 +353,14 @@ implements SimpleServiceConnection.Listener
     public void onResume()
     {
         super.onResume() ;
+//        this.processLastIntent() ;
         if( m_conn == null )
             m_conn = new SimpleServiceConnection<>( PoppycockService.class ) ;
-        m_conn.addListener(this).connect(this) ;
+        if( m_conn.isConnected() )
+            this.populate() ;
+        else
+            m_conn.addListener(this).connect(this) ; // and populate on connect
+        this.updateTitleForMode() ;
     }
 
     @Override
@@ -344,6 +374,8 @@ implements SimpleServiceConnection.Listener
     public boolean onPrepareOptionsMenu( Menu menu )
     {
         m_miSortHistory = menu.findItem( R.id.miSortHistory ) ;
+        m_miSwitchMode = menu.findItem( R.id.miSwitchMode ) ;
+        this.updateModeMenuItem() ;
         m_miDeleteHistory = menu.findItem( R.id.miDeleteHistory ) ;
         this.updateSortMenuItem() ;
         return super.onPrepareOptionsMenu( menu ) ;
@@ -392,6 +424,9 @@ implements SimpleServiceConnection.Listener
                 break ;
             case R.id.miSortHistory:
                 this.onSortButtonPressed() ;
+                break ;
+            case R.id.miSwitchMode:
+                this.switchMode() ;
                 break ;
             case R.id.miDeleteHistory:
                 this.onDeleteButtonPressed() ;
@@ -444,10 +479,14 @@ implements SimpleServiceConnection.Listener
         if( m_conn != null && m_conn.isConnected() )
         {
             PoppycockDatabase db = m_conn.getServiceInstance().getDB() ;
+            final boolean bSortOrder = ( m_zSortOrder != API.SORTING_DESC ) ;
             if( db.isConnected() )
             {
-                aoSentences =
-                        db.getHistory(( m_zSortOrder != API.SORTING_DESC )) ;
+                Log.d( LOG_TAG, ( m_mMode == API.MODE_FAVORITES ? "populating favorites" : "populating history" ) ) ;
+                aoSentences = ( m_mMode == API.MODE_FAVORITES ?
+                        db.getFavorites( bSortOrder ) :
+                        db.getHistory( bSortOrder )
+                    );
             }
         }
         else aoSentences = new ArrayList<>() ;
@@ -456,6 +495,33 @@ implements SimpleServiceConnection.Listener
             R.layout.listitem_poppycock_sentence, aoSentences ) ;
         m_awSentences.setAdapter( adapter ) ;
 
+        return this ;
+    }
+
+	/**
+	 * Sets the operating mode based on extras in the last {@link Intent}.
+     * @return (fluid)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @deprecated This approach failed; the code is left behind to wait for
+     *  better ideas.
+     */
+//    protected HistoryActivity processLastIntent()
+//    {
+//        final Intent sig = this.getIntent() ;
+//        m_mMode = sig.getIntExtra( API.EXTRA_TAG_MODE, API.MODE_HISTORY ) ;
+//        return this ;
+//    }
+
+	/**
+	 * Switches operating mode in response to a button press.
+     * @return (fluid)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    protected HistoryActivity switchMode()
+    {
+        m_mMode = ( m_mMode == API.MODE_FAVORITES ?
+                API.MODE_HISTORY : API.MODE_FAVORITES ) ;
+        this.populate().updateModeMenuItem().updateTitleForMode() ;
         return this ;
     }
 
@@ -479,6 +545,55 @@ implements SimpleServiceConnection.Listener
         }
         this.runOnUiThread( new MenuItemUpdater(
                 m_miSortHistory, resLabel, resIcon ) ) ;
+
+        return this ;
+    }
+
+	/**
+	 * Updates the icon and caption for the mode switcher button.
+     * @return (fluid)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    protected HistoryActivity updateModeMenuItem()
+    {
+        int resLabel, resIcon ;
+        switch( m_mMode )
+        {
+            case API.MODE_FAVORITES:
+                resLabel = R.string.label_miHistoryMode_history ;
+                resIcon = R.drawable.ic_history_black_24dp ;
+                break ;
+            case API.MODE_HISTORY:
+            default:
+                resLabel = R.string.label_miHistoryMode_favorites ;
+                resIcon = R.drawable.ic_favorite_black_24dp ;
+        }
+        this.runOnUiThread( new MenuItemUpdater(
+                m_miSwitchMode, resLabel, resIcon ) ) ;
+
+        return this ;
+    }
+
+	/**
+     * Updates the window title in response to a mode switch.
+     * @return (fluid)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    protected HistoryActivity updateTitleForMode()
+    {
+        this.runOnUiThread( new Runnable()
+        {
+            protected final HistoryActivity m_act = HistoryActivity.this ;
+
+            @Override
+            public void run()
+            {
+                this.m_act.setTitle(( m_mMode == API.MODE_FAVORITES ?
+                        R.string.title_HistoryActivity_favorites :
+                        R.string.title_HistoryActivity_history )) ;
+            }
+        });
+
         return this ;
     }
 }

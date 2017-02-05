@@ -8,9 +8,10 @@
     <string name="label_btnFavoriteFalse">Just unloved nonsense.</string>
 
     <string name="label_miDeleteHistory">Delete&#8230;</string>
-    <string name="label_miHistory">History&#8230;</string>
-    <string name="label_miHistoryMode_history">View the Historical Record</string>
+    <string name="label_miFavorites">View the Nonsense Hall of Fame&#8230;</string>
+    <string name="label_miHistory">View the Historical Record&#8230;</string>
     <string name="label_miHistoryMode_favorites">View the Nonsense Hall of Fame</string>
+    <string name="label_miHistoryMode_history">View the Historical Record</string>
     <string name="label_miSort_asc">Oldest First</string>
     <string name="label_miSort_desc">Newest First</string>
 

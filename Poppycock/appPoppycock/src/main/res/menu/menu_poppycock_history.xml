@@ -11,14 +11,22 @@
         android:title="@string/label_miSort_desc"
         android:icon="@drawable/ic_arrow_downward_black_24dp"
         android:orderInCategory="1"
-        app:showAsAction="always"
+        app:showAsAction="ifRoom"
+        />
+
+    <item
+        android:id="@+id/miSwitchMode"
+        android:title="@string/label_miHistoryMode_favorites"
+        android:icon="@drawable/ic_favorite_black_24dp"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom"
         />
 
     <item
         android:id="@+id/miDeleteHistory"
         android:title="@string/label_miDeleteHistory"
         android:icon="@drawable/ic_delete_black_24dp"
-        android:orderInCategory="2"
+        android:orderInCategory="3"
         app:showAsAction="ifRoom"
         />
 
