@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".ui.HistoryActivity"
+    >
+
+    <item
+        android:id="@+id/miSortHistory"
+        android:title="@string/label_miSort_desc"
+        android:icon="@drawable/ic_arrow_downward_black_24dp"
+        android:orderInCategory="1"
+        app:showAsAction="always"
+        />
+
+    <item
+        android:id="@+id/miDeleteHistory"
+        android:title="@string/label_miDeleteHistory"
+        android:icon="@drawable/ic_delete_black_24dp"
+        android:orderInCategory="2"
+        app:showAsAction="ifRoom"
+        />
+
+</menu>

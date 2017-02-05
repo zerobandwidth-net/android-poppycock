@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import net.zerobandwidth.android.apps.poppycock.PoppycockService;
 import net.zerobandwidth.android.apps.poppycock.R;
@@ -60,6 +62,15 @@ implements SimpleServiceConnection.Listener
         public static final int MODE_HISTORY = 0 ;
         /** Constant dictating "favorites" mode for the activity. */
         public static final int MODE_FAVORITES = 1 ;
+
+        /** Tag for the extra that specifies sort order. */
+        public static final String EXTRA_TAG_SORT_ORDER =
+                EXTRA_PREFIX + "SORT_ORDER" ;
+
+        /** Indicates that the display is sorted ascending (oldest first). */
+        public static final int SORTING_ASC = 1 ;
+        /** Indicates that the display is sorted descending (newest first). */
+        public static final int SORTING_DESC = -1 ;
 
         /**
          * Start the activity in "historical record" mode.
@@ -187,6 +198,47 @@ implements SimpleServiceConnection.Listener
         }
     }
 
+	/**
+	 * Run this class on the UI thread to update the caption and image of a
+     * menu item.
+     * @see HistoryActivity#updateSortMenuItem()
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     */
+    protected class MenuItemUpdater
+    implements Runnable
+    {
+        protected final HistoryActivity m_act = HistoryActivity.this ;
+
+        /** The menu item to be updated. */
+        protected MenuItem m_mi = null ;
+
+        /** The resource ID of the caption for the item. */
+        protected int m_resCaption ;
+
+        /** The resource ID of the icon that should be used for the item. */
+        protected int m_resIcon ;
+
+	    /**
+	     * Sets up the updater.
+         * @param mi the menu item to be updated
+         * @param resCaption the caption to be assigned
+         * @param resIcon the icon to be assigned
+         */
+        public MenuItemUpdater( MenuItem mi, int resCaption, int resIcon )
+        {
+            this.m_mi = mi ;
+            this.m_resCaption = resCaption ;
+            this.m_resIcon = resIcon ;
+        }
+
+        @Override
+        public void run()
+        {
+            m_mi.setTitle( m_resCaption ) ;
+            m_mi.setIcon( m_resIcon ) ;
+        }
+    }
+
 /// Instance Members ///////////////////////////////////////////////////////////
 
     /** A connection to the service which deals with historical nonsense. */
@@ -203,6 +255,24 @@ implements SimpleServiceConnection.Listener
      */
     protected ListView m_awSentences = null ;
 
+	/**
+     * A persistent binding to the menu item for sorting the list of nonsense.
+     * The icon, caption, and behavior of this item change based on state.
+     */
+    protected MenuItem m_miSortHistory = null ;
+
+	/**
+	 * The current sort order for the displayed records.
+     * Defaults to ascending (oldest first).
+     */
+    protected int m_zSortOrder = API.SORTING_ASC ;
+
+	/**
+	 * A persistent binding to the menu item for deleting nonsense from the
+     * record. The function of this item changes depending on window mode.
+     */
+    protected MenuItem m_miDeleteHistory = null ;
+
 /// Activity Lifecycle /////////////////////////////////////////////////////////
 
     @Override
@@ -213,6 +283,8 @@ implements SimpleServiceConnection.Listener
         if( bndlState != null )
         { // Restore operating mode.
             m_mMode = bndlState.getInt( API.EXTRA_TAG_MODE ) ;
+            final int zSortOrder = bndlState.getInt( API.EXTRA_TAG_SORT_ORDER );
+            m_zSortOrder = ( zSortOrder == 0 ? API.SORTING_ASC : zSortOrder ) ;
         }
         switch( m_mMode )
         { // Set the title based on the mode we just discovered.
@@ -238,10 +310,27 @@ implements SimpleServiceConnection.Listener
     }
 
     @Override
+    public boolean onCreateOptionsMenu( Menu menu )
+    {
+        this.getMenuInflater().inflate( R.menu.menu_poppycock_history, menu ) ;
+        return true ;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu( Menu menu )
+    {
+        m_miSortHistory = menu.findItem( R.id.miSortHistory ) ;
+        m_miDeleteHistory = menu.findItem( R.id.miDeleteHistory ) ;
+        this.updateSortMenuItem() ;
+        return super.onPrepareOptionsMenu( menu ) ;
+    }
+
+    @Override
     protected void onSaveInstanceState( Bundle bndlState )
     {
         super.onSaveInstanceState( bndlState ) ;
         bndlState.putInt( API.EXTRA_TAG_MODE, m_mMode ) ;
+        bndlState.putInt( API.EXTRA_TAG_SORT_ORDER, m_zSortOrder ) ;
     }
 
     @Override
@@ -277,11 +366,49 @@ implements SimpleServiceConnection.Listener
             case android.R.id.home:
                 this.onBackPressed() ;
                 break ;
+            case R.id.miSortHistory:
+                this.onSortButtonPressed() ;
+                break ;
+            case R.id.miDeleteHistory:
+                this.onDeleteButtonPressed() ;
+                break ;
         }
         return super.onOptionsItemSelected(mi) ;
     }
 
 /// Other Instance Methods /////////////////////////////////////////////////////
+
+	/**
+     * Deletes the set of records corresponding to the current mode.
+     * @return (fluid)
+     */
+    protected HistoryActivity onDeleteButtonPressed()
+    {
+        Log.d( LOG_TAG, "Yep, pressed the delete button! Let's save this for issue #3!" ) ;
+        Toast.makeText( this, R.string.toast_StayTuned, Toast.LENGTH_SHORT ).show() ;
+        return this ;
+    }
+
+	/**
+     * Inverts the sort order and updates the menu item.
+     * @return (fluid)
+     */
+    protected HistoryActivity onSortButtonPressed()
+    {
+        m_zSortOrder = ( m_zSortOrder == API.SORTING_DESC ?
+                            API.SORTING_ASC : API.SORTING_DESC ) ;
+        this.populate().updateSortMenuItem() ;
+
+        Toast.makeText( this,
+                ( m_zSortOrder == API.SORTING_DESC ?
+                        R.string.toast_SortNewestFirst :
+                        R.string.toast_SortOldestFirst ),
+                Toast.LENGTH_SHORT )
+            .show()
+            ;
+
+        return this ;
+    }
 
     /**
      * Populates the screen with the appropriate historical records.
@@ -294,7 +421,10 @@ implements SimpleServiceConnection.Listener
         {
             PoppycockDatabase db = m_conn.getServiceInstance().getDB() ;
             if( db.isConnected() )
-                aoSentences = db.getHistory(true) ;
+            {
+                aoSentences =
+                        db.getHistory(( m_zSortOrder != API.SORTING_DESC )) ;
+            }
         }
         else aoSentences = new ArrayList<>() ;
 
@@ -302,6 +432,29 @@ implements SimpleServiceConnection.Listener
             R.layout.listitem_poppycock_sentence, aoSentences ) ;
         m_awSentences.setAdapter( adapter ) ;
 
+        return this ;
+    }
+
+	/**
+     * Updates the icon and caption of the sort button.
+     * @return (fluid)
+     */
+    protected HistoryActivity updateSortMenuItem()
+    {
+        int resLabel, resIcon ;
+        switch( m_zSortOrder )
+        {
+            case API.SORTING_DESC:
+                resLabel = R.string.label_miSort_asc ;
+                resIcon = R.drawable.ic_arrow_upward_black_24dp ;
+                break ;
+            case API.SORTING_ASC:
+            default:
+                resLabel = R.string.label_miSort_desc ;
+                resIcon = R.drawable.ic_arrow_downward_black_24dp ;
+        }
+        this.runOnUiThread( new MenuItemUpdater(
+                m_miSortHistory, resLabel, resIcon ) ) ;
         return this ;
     }
 }

@@ -154,4 +154,19 @@ extends SQLitePortal
         { SQLitePortal.closeCursor(crs) ; }
         return ao ;
     }
+
+	/**
+	 * Deletes a set of nonsense from the historical record.
+     * @param bFavorites if true, then only favorites will be deleted; if false,
+     *                   then only non-favorites will be deleted
+     * @return the number of records deleted
+     */
+    @SuppressWarnings( "UnnecessaryLocalVariable" ) // I respectlessly disagree.
+    public synchronized int delete( boolean bFavorites )
+    {
+        if( m_db == null ) return 0 ;
+        final int nCount = m_db.delete( SENTENCE_TABLE_NAME, "favorite=?",
+                new String[] { Integer.toString( boolToInt(bFavorites) ) } ) ;
+        return nCount ;
+    }
 }
