@@ -156,6 +156,27 @@ extends SQLitePortal
     }
 
 	/**
+	 * Anoints some nonsense to the hall of fame, or demotes it to obscurity.
+     * @param o the sentence to be toggled
+     * @return the updated sentence
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     */
+    public synchronized Sentence toggleFavorite( Sentence o )
+    {
+        if( m_db == null ) return null ;
+        o.bIsFavorite = ! o.bIsFavorite ;
+        final int nUpdated =m_db.update( SENTENCE_TABLE_NAME,
+                o.toContentValues(), "item_id=?",
+                new String[] { Long.toString( o.nItemID ) } ) ;
+        Log.d( LOG_TAG, (new StringBuilder())
+                .append( "Updated [" ).append( nUpdated )
+                .append(( nUpdated == 1 ? "] row." : "] rows." ))
+                .toString()
+            );
+        return o ;
+    }
+
+	/**
 	 * Deletes a set of nonsense from the historical record.
      * @param bFavorites if true, then only favorites will be deleted; if false,
      *                   then only non-favorites will be deleted

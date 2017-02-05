@@ -167,8 +167,14 @@ implements SimpleServiceConnection.Listener
      * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
      */
     protected class FavoriteButtonClickListener
-    implements View.OnClickListener
+    implements ImageButton.OnClickListener
     {
+	    /**
+         * A persistent reference back to the activity.
+         * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+         */
+        final protected HistoryActivity m_act = HistoryActivity.this ;
+
         /**
          * A reference to the bit of nonsense that corresponds to this element.
          */
@@ -185,7 +191,7 @@ implements SimpleServiceConnection.Listener
         }
 
         @Override
-        public void onClick( View w )
+        public void onClick( final View w )
         {
             Log.d( LOG_TAG, (new StringBuilder())
                     .append( "Clicked favorite button for sentence [" )
@@ -194,7 +200,25 @@ implements SimpleServiceConnection.Listener
                     .append( m_oSentence.sSentence )
                     .toString()
                 );
-            Log.d( LOG_TAG, "Save the rest of the work for issue 3! ^_^" ) ;
+            if( m_act.m_conn != null && m_act.m_conn.isConnected() )
+            { // (#3) Actually toggle the sentence's state.
+                final PoppycockDatabase db =
+                        m_act.m_conn.getServiceInstance().getDB() ;
+                if( db != null )
+                    db.toggleFavorite( m_oSentence ) ;
+                m_act.runOnUiThread( new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        ((ImageButton)w).setImageResource((
+                                m_oSentence.bIsFavorite ?
+                                    R.drawable.ic_favorite_black_24dp :
+                                    R.drawable.ic_favorite_border_black_24dp
+                            )) ;
+                    }
+                });
+            }
         }
     }
 
