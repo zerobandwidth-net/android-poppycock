@@ -6,4 +6,7 @@
 
     <string name="label_miHistory">History&#8230;</string>
 
+    <string name="title_HistoryActivity_history">The Historical Record</string>
+    <string name="title_HistoryActivity_favorites">Nonsense Hall of Fame</string>
+
 </resources>

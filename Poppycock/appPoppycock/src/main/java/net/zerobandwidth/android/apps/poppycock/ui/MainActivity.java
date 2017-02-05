@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import net.zerobandwidth.android.apps.poppycock.PoppycockService;
 import net.zerobandwidth.android.apps.poppycock.R;
+import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
+import net.zerobandwidth.android.apps.poppycock.model.Sentence;
 import net.zerobandwidth.android.lib.nonsense.NonsenseBuilder;
 import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
 
@@ -28,7 +30,7 @@ implements SimpleServiceConnection.Listener
      * A unique tag marking the activity-state extra containing our last bit of
      * nonsense.
      */
-    protected static final String EXTRA_LAST_NONSENSE =
+    protected static final String EXTRA_TAG_LAST_NONSENSE =
         "net.zerobandwidth.android.apps.poppycock.ui.MainActivity.LAST_NONSENSE" ;
 
 /// Instance Members ///////////////////////////////////////////////////////////
@@ -45,8 +47,8 @@ implements SimpleServiceConnection.Listener
     /** A persistent binding to the activity's main text view. */
     protected TextView m_twNonsense = null ;
 
-    /** Catches the last string of nonsense that was on the screen. */
-    protected String m_sLastNonsense = null ;
+    /** Catches the last bit of nonsense that was created for the screen. */
+    protected Sentence m_oLastNonsense = null ;
 
 /// Activity Lifecycle /////////////////////////////////////////////////////////
 
@@ -81,13 +83,18 @@ implements SimpleServiceConnection.Listener
     {
         if( bndlState != null )
         { // Discover the last bit of nonsense we had on the screen, if any.
-            CharSequence acNonsense =
-                    bndlState.getCharSequence( EXTRA_LAST_NONSENSE ) ;
-            m_sLastNonsense = ( acNonsense != null ?
-                    acNonsense.toString() : m_xyzzy.getString() ) ;
+            Sentence oLastNonsense =
+                    bndlState.getParcelable( EXTRA_TAG_LAST_NONSENSE ) ;
+            if( oLastNonsense != null )
+            {
+                m_oLastNonsense = oLastNonsense ;
+                this.refreshNonsenseOnScreen( m_oLastNonsense.sSentence ) ;
+            }
+            else
+                this.regenerateNonsense() ;
         }
         else
-            m_sLastNonsense = m_xyzzy.getString() ;
+            this.regenerateNonsense() ;
 
         return this ;
     }
@@ -96,7 +103,9 @@ implements SimpleServiceConnection.Listener
     public void onResume()
     {
         super.onResume() ;
-        this.bindToService().refreshNonsense( m_sLastNonsense ) ;
+        this.bindToService()
+            .refreshNonsenseOnScreen( m_oLastNonsense.sSentence )
+            ;
     }
 
     /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
@@ -107,19 +116,11 @@ implements SimpleServiceConnection.Listener
         return true ;
     }
 
-    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
-    @Override
-    public void onPause()
-    {
-        m_sLastNonsense = m_twNonsense.getText().toString() ;
-        super.onPause() ;
-    }
-
     @Override
     protected void onSaveInstanceState( Bundle bndlState )
     {
         super.onSaveInstanceState(bndlState) ;
-        bndlState.putCharSequence( EXTRA_LAST_NONSENSE, m_twNonsense.getText() ) ;
+        bndlState.putParcelable( EXTRA_TAG_LAST_NONSENSE, m_oLastNonsense ) ;
     }
 
     /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
@@ -155,6 +156,7 @@ implements SimpleServiceConnection.Listener
     {
         if( ! conn.isServiceClass( PoppycockService.class ) ) return ;
         Log.d( LOG_TAG, "Connected to service." ) ;
+        this.preserveLastNonsense() ;
     }
 
     /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
@@ -172,34 +174,61 @@ implements SimpleServiceConnection.Listener
         switch( nItem )
         {
             case R.id.miHistory:
-                this.openHistoryScreen() ;
+                this.openHistoryScreen(null) ;
                 break ;
         }
 
         return super.onOptionsItemSelected(mi) ;
     }
 
-
 /// Other Instance Methods /////////////////////////////////////////////////////
 
     /**
      * Handles the event in which a user taps any control that should regenerate
      * new nonsense.
-     * @param w the control that was tapped (ignored)
+     * @param w the control that was tapped, if any (ignored)
      */
     public void onNextNonsenseClicked( View w )
-    { this.refreshNonsense( m_xyzzy.getString() ) ; }
+    { this.refreshNonsenseOnScreen( this.regenerateNonsense() ) ; }
 
     /**
      * Navigates to the screen where the user can view the historical record of
      * nonsense.
+     * @param w the control that was tapped, if any (ignored)
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     */
+    public void openHistoryScreen( View w )
+    { HistoryActivity.API.startHistoryActivity(this) ; }
+
+    /**
+     * Ensures that any previous bit of nonsense that is already tracked by the
+     * activity will be preserved for posterity.
      * @return (fluid)
      * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
      */
-    public MainActivity openHistoryScreen()
+    protected MainActivity preserveLastNonsense()
     {
-        Log.d( LOG_TAG, "Yep, tapped the history button!" ) ;
+        if( m_oLastNonsense != null && m_oLastNonsense.nItemID == Sentence.NOT_IDENTIFIED )
+            this.recordForPosterity(m_oLastNonsense) ;
         return this ;
+    }
+
+    /**
+     * Records a bit of nonsense in the annals of history.
+     * @param o the sentence to be recorded
+     * @return the recorded sentence, with its ID updated
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     */
+    protected Sentence recordForPosterity( Sentence o )
+    {
+        if( m_conn != null && m_conn.isConnected() )
+        {
+            final PoppycockDatabase db =
+                    m_conn.getServiceInstance().getDB() ;
+            if( db != null )
+                db.insertSentence(o) ;
+        }
+        return o ;
     }
 
     /**
@@ -207,7 +236,7 @@ implements SimpleServiceConnection.Listener
      * @param sNonsense the new nonsense to be displayed
      * @return (fluid)
      */
-    protected MainActivity refreshNonsense( final String sNonsense )
+    protected MainActivity refreshNonsenseOnScreen( final String sNonsense )
     {
         this.runOnUiThread( new Runnable()
         {
@@ -218,5 +247,22 @@ implements SimpleServiceConnection.Listener
             { m_act.m_twNonsense.setText( sNonsense ) ; }
         });
         return this ;
+    }
+
+    /**
+     * Generates new nonsense, and inserts it into the historical record.
+     * If we have previous nonsense which has not been added to the historical
+     * record, then it will be preserved before it is clobbered.
+     * @return the new nonsense
+     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     */
+    protected String regenerateNonsense()
+    {
+        this.preserveLastNonsense() ;
+        Sentence oNonsense = new Sentence() ;
+        oNonsense.sSentence = m_xyzzy.getString() ;
+        this.recordForPosterity(oNonsense) ;
+        m_oLastNonsense = oNonsense ;
+        return oNonsense.sSentence ;
     }
 }
