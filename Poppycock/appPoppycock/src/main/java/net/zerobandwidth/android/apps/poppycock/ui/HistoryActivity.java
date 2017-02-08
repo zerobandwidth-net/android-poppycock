@@ -22,7 +22,7 @@ import net.zerobandwidth.android.apps.poppycock.PoppycockService;
 import net.zerobandwidth.android.apps.poppycock.R;
 import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
 import net.zerobandwidth.android.apps.poppycock.model.Sentence;
-import net.zerobandwidth.android.lib.AppUtils;
+import net.zerobandwidth.android.lib.app.AppUtils;
 import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
 import net.zerobandwidth.android.lib.ui.MultitapAlertCompatDialog;
 
