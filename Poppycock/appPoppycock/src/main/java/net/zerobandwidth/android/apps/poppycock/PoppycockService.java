@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
-import net.zerobandwidth.android.lib.IntentUtils;
+import net.zerobandwidth.android.lib.content.IntentUtils;
 import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
 
 /**
