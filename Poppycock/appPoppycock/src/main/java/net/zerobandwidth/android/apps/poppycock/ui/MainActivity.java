@@ -1,6 +1,5 @@
 package net.zerobandwidth.android.apps.poppycock.ui;
 
-import android.app.Service;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,7 +21,7 @@ import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
  */
 public class MainActivity
 extends AppCompatActivity
-implements SimpleServiceConnection.Listener
+implements SimpleServiceConnection.Listener<PoppycockService>
 {
     public static final String LOG_TAG = MainActivity.class.getSimpleName() ;
 
@@ -134,7 +133,7 @@ implements SimpleServiceConnection.Listener
         super.onDestroy() ;
     }
 
-/// SimpleServiceConnection<>.Listener /////////////////////////////////////////
+/// SimpleServiceConnection.Listener<> /////////////////////////////////////////
 
     /**
      * Binds the activity to the {@link PoppycockService}.
@@ -152,16 +151,15 @@ implements SimpleServiceConnection.Listener
 
     /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
     @Override
-    public <S extends Service> void onServiceConnected( SimpleServiceConnection<S> conn )
+    public void onServiceConnected( SimpleServiceConnection<PoppycockService> conn )
     {
-        if( ! conn.isServiceClass( PoppycockService.class ) ) return ;
         Log.d( LOG_TAG, "Connected to service." ) ;
         this.preserveLastNonsense() ;
     }
 
     /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
     @Override
-    public <S extends Service> void onServiceDisconnected( SimpleServiceConnection<S> conn )
+    public void onServiceDisconnected( SimpleServiceConnection<PoppycockService> conn )
     { Log.d( LOG_TAG, "Disconnected from service." ) ; }
 
 /// AppCompatActivity //////////////////////////////////////////////////////////

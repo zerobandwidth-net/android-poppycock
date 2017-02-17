@@ -1,6 +1,6 @@
 package net.zerobandwidth.android.apps.poppycock.ui;
 
-import android.app.Service;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
@@ -38,7 +38,7 @@ import java.util.List;
  */
 public class HistoryActivity
 extends AppCompatActivity
-implements SimpleServiceConnection.Listener
+implements SimpleServiceConnection.Listener<PoppycockService>
 {
     public static final String LOG_TAG = HistoryActivity.class.getSimpleName() ;
 
@@ -131,7 +131,7 @@ implements SimpleServiceConnection.Listener
 
             LayoutInflater infl = ((LayoutInflater)
                 ( m_ctx.getSystemService( Context.LAYOUT_INFLATER_SERVICE ) )) ;
-            View wRow = infl.inflate(
+            @SuppressLint( "ViewHolder" ) View wRow = infl.inflate(
                     R.layout.listitem_poppycock_sentence, awParent, false ) ;
 
             ImageButton btnFavorite = ((ImageButton)
@@ -234,8 +234,6 @@ implements SimpleServiceConnection.Listener
     protected class MenuItemUpdater
     implements Runnable
     {
-        protected final HistoryActivity m_act = HistoryActivity.this ;
-
         /** The menu item to be updated. */
         protected MenuItem m_mi = null ;
 
@@ -432,15 +430,14 @@ implements SimpleServiceConnection.Listener
 /// SimpleServiceConnection<>.Listener /////////////////////////////////////////
 
     @Override
-    public <S extends Service> void onServiceConnected( SimpleServiceConnection<S> conn )
+    public void onServiceConnected( SimpleServiceConnection<PoppycockService> conn )
     {
-        if( ! conn.isServiceClass( PoppycockService.class ) ) return ;
         Log.d( LOG_TAG, "Connected to service." ) ;
         this.populate() ;
     }
 
     @Override
-    public <S extends Service> void onServiceDisconnected( SimpleServiceConnection<S> conn )
+    public void onServiceDisconnected( SimpleServiceConnection<PoppycockService> conn )
     { Log.d( LOG_TAG, "Disconnected from service." ) ; }
 
 /// AppCompatActivity //////////////////////////////////////////////////////////
@@ -553,7 +550,7 @@ implements SimpleServiceConnection.Listener
      */
     protected HistoryActivity populate()
     {
-        ArrayList<Sentence> aoSentences = null ;
+        ArrayList<Sentence> aoSentences ;
         final PoppycockDatabase db = this.getDBFromService() ;
         if( db != null )
         {
