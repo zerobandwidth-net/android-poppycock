@@ -10,7 +10,7 @@
  * ...where "/local/path/to/" is replaced with the actual local path to the
  * library.
  */
-include ':zerobandwidth_android'
-project (':zerobandwidth_android').projectDir = new File(lib_zerobandwidth_android)
+include ':libAndroid'
+project (':libAndroid').projectDir = new File(lib_zerobandwidth_android)
 
 include ':appPoppycock'

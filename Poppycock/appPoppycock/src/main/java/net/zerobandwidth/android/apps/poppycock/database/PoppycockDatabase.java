@@ -9,7 +9,6 @@ import net.zerobandwidth.android.apps.poppycock.model.Sentence;
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Provides access to an SQLite database in which we keep historical nonsense.
