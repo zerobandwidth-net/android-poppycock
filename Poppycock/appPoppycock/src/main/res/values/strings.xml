@@ -2,18 +2,22 @@
 
     <string name="app_name">Poppycock</string>
 
-    <string name="label_btnMoreNonsense">Next</string>
+    <string name="hashtag_poppycock">#poppycock</string>
 
+    <string name="label_btnMoreNonsense">Next</string>
     <string name="label_btnFavoriteTrue">Nonsense Hall of Fame Inductee</string>
     <string name="label_btnFavoriteFalse">Just unloved nonsense.</string>
 
+    <string name="label_miCopy">Copy to Clipboard</string>
     <string name="label_miDeleteHistory">Delete&#8230;</string>
     <string name="label_miFavorites">View the Nonsense Hall of Fame&#8230;</string>
     <string name="label_miHistory">View the Historical Record&#8230;</string>
     <string name="label_miHistoryMode_favorites">View the Nonsense Hall of Fame</string>
     <string name="label_miHistoryMode_history">View the Historical Record</string>
+    <string name="label_miShare">Share&#8230;</string>
     <string name="label_miSort_asc">Oldest First</string>
     <string name="label_miSort_desc">Newest First</string>
+    <string name="label_miTweet">Tweet&#8230;</string>
 
     <string name="message_DeleteHistory">
         This operation will delete all entries in the Historical Record that are
@@ -30,7 +34,9 @@
     <string name="title_DeleteFavorites">Delete the Nonsense Hall of Fame?!</string>
     <string name="title_HistoryActivity_history">The Historical Record</string>
     <string name="title_HistoryActivity_favorites">Nonsense Hall of Fame</string>
+    <string name="title_ShareTo">Share to&#8230;</string>
 
+    <string name="toast_Copied">Copied to clipboard.</string>
     <string name="toast_DatabaseNoWorky">
         The Historical Record is currently on holiday.
     </string>
@@ -40,5 +46,6 @@
         This feature isn\'t quite done yet! Look for it in a future
         version&#8230;
     </string>
+    <string name="toast_URLEncodeFailed">Could not encode the message.</string>
 
 </resources>

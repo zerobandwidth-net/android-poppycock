@@ -1,5 +1,9 @@
 package net.zerobandwidth.android.apps.poppycock.ui;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -7,6 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import net.zerobandwidth.android.apps.poppycock.PoppycockService;
 import net.zerobandwidth.android.apps.poppycock.R;
@@ -14,6 +19,9 @@ import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
 import net.zerobandwidth.android.apps.poppycock.model.Sentence;
 import net.zerobandwidth.android.lib.nonsense.NonsenseBuilder;
 import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 /**
  * The app's main activity.
@@ -49,6 +57,14 @@ implements SimpleServiceConnection.Listener<PoppycockService>
     /** Catches the last bit of nonsense that was created for the screen. */
     protected Sentence m_oLastNonsense = null ;
 
+	/**
+	 * Persistent reference to the system's clipboard manager.
+	 * The activity features a "copy" button which puts the current text to the
+	 * clipboard, so it makes sense to retrieve this only once.
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#4)
+	 */
+	protected ClipboardManager m_mgrClipboard = null ;
+
 /// Activity Lifecycle /////////////////////////////////////////////////////////
 
     @Override
@@ -58,6 +74,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
         if( m_xyzzy == null ) m_xyzzy = new NonsenseBuilder(this) ;
         this.setContentView( R.layout.activity_poppycock_main ) ;
         this.bindToElements().restoreText(bndlState) ;
+	    this.getClipboardManager() ;
         PoppycockService.API.kickoff(this) ;
     }
 
@@ -171,18 +188,57 @@ implements SimpleServiceConnection.Listener<PoppycockService>
         final int nItem = mi.getItemId() ;
         switch( nItem )
         {
+	        case R.id.miCopy:
+		        this.onCopyButtonClicked(null) ;
+		        break ;
             case R.id.miHistory:
                 this.openHistoryScreen(null) ;
                 break ;
-//            case R.id.miFavorites:
-//                this.openFavoritesScreen(null) ;
-//                break ;
+            case R.id.miShare:
+                this.onShareButtonClicked(null) ;
+	            break ;
+	        case R.id.miTweet:
+		        this.onTweetButtonClicked(null) ;
+		        break ;
         }
 
         return super.onOptionsItemSelected(mi) ;
     }
 
 /// Other Instance Methods /////////////////////////////////////////////////////
+
+	/**
+	 * Fetches the current {@link ClipboardManager}, creating the instance if
+	 * necessary.
+	 * @return the current clipboard manager
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#4)
+	 */
+	protected ClipboardManager getClipboardManager()
+	{
+		if( m_mgrClipboard == null )
+		{
+			m_mgrClipboard = ((ClipboardManager)
+					( this.getSystemService( CLIPBOARD_SERVICE ) )) ;
+		}
+		return m_mgrClipboard ;
+	}
+
+	/**
+	 * Copies the contents of the current nonsense pane to the clipboard.
+	 * @param w the control that was tapped, if any (ignored)
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#4)
+	 */
+	public void onCopyButtonClicked( View w )
+	{
+		ClipData sdNonsense = ClipData.newPlainText(
+				this.getString( R.string.app_name ),
+				m_oLastNonsense.sSentence
+			);
+		m_mgrClipboard.setPrimaryClip( sdNonsense ) ;
+		Toast.makeText( this, this.getString( R.string.toast_Copied ),
+				Toast.LENGTH_SHORT )
+			.show() ;
+	}
 
     /**
      * Handles the event in which a user taps any control that should regenerate
@@ -191,6 +247,62 @@ implements SimpleServiceConnection.Listener<PoppycockService>
      */
     public void onNextNonsenseClicked( View w )
     { this.refreshNonsenseOnScreen( this.regenerateNonsense() ) ; }
+
+	/**
+     * Shares the current nonsense.
+     * @param w the control that was tapped, if any (ignored)
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#4)
+     */
+    public void onShareButtonClicked( View w )
+    {
+        Intent sigShare = new Intent( Intent.ACTION_SEND ) ;
+        sigShare.putExtra( Intent.EXTRA_TEXT, this.getShareText() ) ;
+        this.startActivity( Intent.createChooser( sigShare,
+		        this.getString( R.string.title_ShareTo ) ) ) ;
+    }
+
+	/**
+	 * Shares the current nonsense to Twitter.
+	 * @param w the control that was tapped, if any (ignored)
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#4)
+	 */
+	public void onTweetButtonClicked( View w )
+	{
+		try
+		{
+			String sShare = (new StringBuilder())
+				.append( "https://twitter.com/intent/tweet?text=" )
+				.append( URLEncoder.encode( this.getShareText(), "UTF-8" ) )
+				.toString()
+				;
+			Uri uriShare = Uri.parse( sShare ) ;
+			this.startActivity( new Intent( Intent.ACTION_VIEW, uriShare ) ) ;
+		}
+		catch( UnsupportedEncodingException x )
+		{
+			Log.e( LOG_TAG, "Could not encode nonsense in Twitter URL.", x ) ;
+			Toast.makeText( this,
+					this.getString( R.string.toast_URLEncodeFailed ),
+					Toast.LENGTH_SHORT )
+				.show() ;
+		}
+	}
+
+	/**
+	 * Generates the text to be shared to social media. This is the text of the
+	 * nonsense currently on-screen, with the {@code #poppycock} hashtag
+	 * appended to the end.
+	 * @return nonsense to be shared with the world
+	 */
+	protected String getShareText()
+	{
+		return (new StringBuilder())
+				.append( m_oLastNonsense.sSentence )
+				.append( " " )
+				.append( this.getString( R.string.hashtag_poppycock ) )
+				.toString()
+				;
+	}
 
 	/**
 	 * Navigates to the screen where the user can view the Nonsense Hall of
