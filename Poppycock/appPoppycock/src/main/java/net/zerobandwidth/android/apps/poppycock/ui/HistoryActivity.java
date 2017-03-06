@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,9 +23,11 @@ import net.zerobandwidth.android.apps.poppycock.PoppycockService;
 import net.zerobandwidth.android.apps.poppycock.R;
 import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
 import net.zerobandwidth.android.apps.poppycock.model.Sentence;
+import net.zerobandwidth.android.apps.poppycock.ui.clicks.FavoriteButtonToggleListener;
 import net.zerobandwidth.android.lib.app.AppUtils;
 import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
 import net.zerobandwidth.android.lib.ui.MultitapAlertCompatDialog;
+import net.zerobandwidth.android.lib.view.updaters.MenuItemUpdater;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -84,20 +87,6 @@ implements SimpleServiceConnection.Listener<PoppycockService>
             sig.putExtra( EXTRA_TAG_MODE, MODE_HISTORY ) ;
             ctx.startActivity(sig) ;
         }
-
-        /**
-         * Start the activity in "nonsense hall of fame" mode.
-         * @param ctx the context which is requesting the activity.
-         * @deprecated This approach failed; the code is left behind to wait for
-         *  better ideas.
-         */
-//        public static void startFavoritesActivity( Context ctx )
-//        {
-//            Log.d( LOG_TAG, "Kicking off favorites activity..." ) ;
-//            Intent sig = new Intent( ctx, HistoryActivity.class ) ;
-//            sig.putExtra( EXTRA_TAG_MODE, MODE_FAVORITES ) ;
-//            ctx.startActivity(sig) ;
-//        }
     }
 
 /// Inner Classes //////////////////////////////////////////////////////////////
@@ -134,6 +123,11 @@ implements SimpleServiceConnection.Listener<PoppycockService>
             @SuppressLint( "ViewHolder" ) View wRow = infl.inflate(
                     R.layout.listitem_poppycock_sentence, awParent, false ) ;
 
+	        LinearLayout layListItemTextArea = ((LinearLayout)
+			        ( wRow.findViewById( R.id.laySentenceListItemTextArea ) )) ;
+	        layListItemTextArea.setOnClickListener(
+			        new ListItemClickListener( oSentence ) ) ;
+
             ImageButton btnFavorite = ((ImageButton)
                         ( wRow.findViewById( R.id.btnFavorite ) )) ;
             if( oSentence.bIsFavorite )
@@ -150,13 +144,13 @@ implements SimpleServiceConnection.Listener<PoppycockService>
                 btnFavorite.setContentDescription( this.m_ctx.getString(
                         R.string.label_btnFavoriteFalse ) ) ;
             }
-            btnFavorite.setOnClickListener(
-                    new FavoriteButtonClickListener( oSentence ) ) ;
+	        btnFavorite.setOnClickListener(
+		        new FavoriteButtonToggleListener( HistoryActivity.this,
+			        HistoryActivity.this.getDBFromService(), oSentence ) ) ;
 
             TextView twHistoricalNonsense = ((TextView)
                         ( wRow.findViewById( R.id.twHistoricalNonsense ) )) ;
-            twHistoricalNonsense.setText(
-                    this.m_aoSentences.get(nIndex).sSentence ) ;
+            twHistoricalNonsense.setText( oSentence.sSentence ) ;
 
             TextView twDate = ((TextView)
                         ( wRow.findViewById( R.id.twHistoricalDate ) )) ;
@@ -167,101 +161,33 @@ implements SimpleServiceConnection.Listener<PoppycockService>
         }
     }
 
-    /**
-     * Handles the event where the user has clicked on the favorite indicator.
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
-     */
-    protected class FavoriteButtonClickListener
-    implements ImageButton.OnClickListener
-    {
-	    /**
-         * A persistent reference back to the activity.
-         * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
-         */
-        final protected HistoryActivity m_act = HistoryActivity.this ;
-
-        /**
-         * A reference to the bit of nonsense that corresponds to this element.
-         */
-        protected Sentence m_oSentence = null ;
-
-        /**
-         * A constructor which binds the listener to a sentence instance.
-         * @param oSentence the bit of nonsense to bind
-         */
-        public FavoriteButtonClickListener( Sentence oSentence )
-        {
-            super() ;
-            m_oSentence = oSentence ;
-        }
-
-        @Override
-        public void onClick( final View w )
-        {
-            Log.d( LOG_TAG, (new StringBuilder())
-                    .append( "Clicked favorite button for sentence [" )
-                    .append( m_oSentence.nItemID )
-                    .append( "]: " )
-                    .append( m_oSentence.sSentence )
-                    .toString()
-                );
-            final PoppycockDatabase db = this.m_act.getDBFromService() ;
-            if( db != null )
-            {
-                db.toggleFavorite( m_oSentence ) ;
-                m_act.runOnUiThread( new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        ((ImageButton)w).setImageResource((
-                                m_oSentence.bIsFavorite ?
-                                    R.drawable.ic_favorite_black_24dp :
-                                    R.drawable.ic_favorite_border_black_24dp
-                            )) ;
-                    }
-                });
-            }
-        }
-    }
-
 	/**
-	 * Run this class on the UI thread to update the caption and image of a
-     * menu item.
-     * @see HistoryActivity#updateSortMenuItem()
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
-     */
-    protected class MenuItemUpdater
-    implements Runnable
+	 * Handles the event where the user has clicked on the text area containing
+	 * one of the sentences.
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 */
+	protected class ListItemClickListener
+    implements View.OnClickListener
     {
-        /** The menu item to be updated. */
-        protected MenuItem m_mi = null ;
+	    /** A persistent reference back to the activity. */
+        protected final HistoryActivity m_act = HistoryActivity.this ;
 
-        /** The resource ID of the caption for the item. */
-        protected int m_resCaption ;
-
-        /** The resource ID of the icon that should be used for the item. */
-        protected int m_resIcon ;
+	    /** A reference to the bit of nonsense shown in this element. */
+	    protected Sentence m_oSentence = null ;
 
 	    /**
-	     * Sets up the updater.
-         * @param mi the menu item to be updated
-         * @param resCaption the caption to be assigned
-         * @param resIcon the icon to be assigned
-         */
-        public MenuItemUpdater( MenuItem mi, int resCaption, int resIcon )
-        {
-            this.m_mi = mi ;
-            this.m_resCaption = resCaption ;
-            this.m_resIcon = resIcon ;
-        }
+	     * A constructor which binds the listener to a sentence instance.
+	     * @param o the bit of nonsense to bind
+	     */
+	    public ListItemClickListener( Sentence o )
+	    { super() ; m_oSentence = o ; }
 
-        @Override
-        public void run()
-        {
-            m_mi.setTitle( m_resCaption ) ;
-            m_mi.setIcon( m_resIcon ) ;
-        }
+	    @Override
+	    public void onClick( final View w )
+	    {
+		    Log.d( LOG_TAG, "I got clicked!" ) ;
+		    SentenceReviewActivity.API.startActivity( m_act, m_oSentence ) ;
+	    }
     }
 
 	/**
@@ -291,7 +217,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
                     ;
                 return ;
             }
-            db.delete(( m_zDeletionSet == API.MODE_FAVORITES )) ;
+            db.deleteCategory(( m_zDeletionSet == API.MODE_FAVORITES )) ;
             this.m_act.populate() ;
         }
 
@@ -321,9 +247,9 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 
 	/**
 	 * The current sort order for the displayed records.
-     * Defaults to ascending (oldest first).
+     * Defaults to descending (newest first).
      */
-    protected int m_zSortOrder = API.SORTING_ASC ;
+    protected int m_zSortOrder = API.SORTING_DESC ;
 
 	/**
 	 * A persistent binding to the menu item for deleting nonsense from the
@@ -339,19 +265,6 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 
 /// Activity Lifecycle /////////////////////////////////////////////////////////
 
-    /**
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
-     * @deprecated This approach failed; the code is left behind to wait for
-     *  better ideas.
-     */
-//    @Override
-//    protected void onNewIntent( Intent sig )
-//    {
-//        super.onNewIntent(sig) ;
-//        this.setIntent( sig ) ;
-//        this.processLastIntent() ;
-//    }
-
     @Override
     protected void onCreate( Bundle bndlState )
     {
@@ -362,9 +275,8 @@ implements SimpleServiceConnection.Listener<PoppycockService>
             m_zMode = bndlState.getInt( API.EXTRA_TAG_MODE ) ;
             Log.d( LOG_TAG, ( m_zMode == API.MODE_FAVORITES ? "state bundle favorites" : "state bundle history" ) ) ;
             final int zSortOrder = bndlState.getInt( API.EXTRA_TAG_SORT_ORDER );
-            m_zSortOrder = ( zSortOrder == 0 ? API.SORTING_ASC : zSortOrder ) ;
+            m_zSortOrder = ( zSortOrder == 0 ? API.SORTING_DESC : zSortOrder ) ;
         }
-//        this.processLastIntent() ; // Overrides old state if got new intent.
         switch( m_zMode )
         { // Set the title based on the mode we just discovered.
             case API.MODE_FAVORITES:
@@ -383,7 +295,6 @@ implements SimpleServiceConnection.Listener<PoppycockService>
     public void onResume()
     {
         super.onResume() ;
-//        this.processLastIntent() ;
         if( m_conn == null )
             m_conn = new SimpleServiceConnection<>( PoppycockService.class ) ;
         if( m_conn.isConnected() )
@@ -422,12 +333,12 @@ implements SimpleServiceConnection.Listener<PoppycockService>
     @Override
     public void onDestroy()
     {
-        if( m_conn != null && m_conn.isBound() )
+        if( m_conn != null && m_conn.isConnected() )
             m_conn.removeListener(this).disconnect(this) ;
         super.onDestroy() ;
     }
 
-/// SimpleServiceConnection<>.Listener /////////////////////////////////////////
+/// SimpleServiceConnection.Listener<PoppycockService> /////////////////////////
 
     @Override
     public void onServiceConnected( SimpleServiceConnection<PoppycockService> conn )
@@ -570,20 +481,6 @@ implements SimpleServiceConnection.Listener<PoppycockService>
     }
 
 	/**
-	 * Sets the operating mode based on extras in the last {@link Intent}.
-     * @return (fluid)
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
-     * @deprecated This approach failed; the code is left behind to wait for
-     *  better ideas.
-     */
-//    protected HistoryActivity processLastIntent()
-//    {
-//        final Intent sig = this.getIntent() ;
-//        m_zMode = sig.getIntExtra( API.EXTRA_TAG_MODE, API.MODE_HISTORY ) ;
-//        return this ;
-//    }
-
-	/**
 	 * Switches operating mode in response to a button press.
      * @return (fluid)
      * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
@@ -615,7 +512,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
                 resIcon = R.drawable.ic_arrow_downward_black_24dp ;
         }
         this.runOnUiThread( new MenuItemUpdater(
-                m_miSortHistory, resLabel, resIcon ) ) ;
+                m_miSortHistory, this, resLabel, resIcon ) ) ;
 
         return this ;
     }
@@ -640,7 +537,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
                 resIcon = R.drawable.ic_favorite_black_24dp ;
         }
         this.runOnUiThread( new MenuItemUpdater(
-                m_miSwitchMode, resLabel, resIcon ) ) ;
+                m_miSwitchMode, this, resLabel, resIcon ) ) ;
 
         return this ;
     }

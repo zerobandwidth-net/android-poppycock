@@ -18,7 +18,7 @@ public class Sentence
 implements Parcelable
 {
     /** Indicates that the instance has not yet been stored in the database. */
-    public static long NOT_IDENTIFIED = -1L ;
+    public static final long NOT_IDENTIFIED = -1L ;
 
     /** The numeric index of the record. */
     public long nItemID = NOT_IDENTIFIED ;

@@ -4,9 +4,16 @@
 
     <string name="hashtag_poppycock">#poppycock</string>
 
-    <string name="label_btnMoreNonsense">Next</string>
+    <string name="label_btnDelete">Delete&#8230;</string>
+    <string name="label_btnFavorite">Favorite</string>
     <string name="label_btnFavoriteTrue">Nonsense Hall of Fame Inductee</string>
     <string name="label_btnFavoriteFalse">Just unloved nonsense.</string>
+    <string name="label_btnMoreNonsense">Next</string>
+    <string name="label_btnNext">Next</string>
+    <string name="label_btnPrevious">Previous</string>
+    <string name="label_btnShare">Share&#8230;</string>
+    <string name="label_btnTweet">Tweet&#8230;</string>
+    <string name="label_btnUnfavorite">Un-Favorite</string>
 
     <string name="label_miCopy">Copy to Clipboard</string>
     <string name="label_miDeleteHistory">Delete&#8230;</string>
@@ -29,11 +36,22 @@
         of Fame! Doing such a thing is inconceivable! But if you really mean it,
         just keep tapping that button&#8230;
     </string>
+    <string name="message_DeleteOneSentence">
+        Do you really want to delete this bit of nonsense from the historical
+        record?
+    </string>
+    <string name="message_DeleteOneSentence_favorite">
+        Do you really want to delete this Nonsense Hall of Fame inductee from
+        the historical record? Such an action cannot be undone! What will your
+        children\'s children say when you deny them this work of art?
+    </string>
 
     <string name="title_DeleteHistory">Delete the Historical Record?</string>
     <string name="title_DeleteFavorites">Delete the Nonsense Hall of Fame?!</string>
+    <string name="title_DeleteOneSentence">Delete?</string>
     <string name="title_HistoryActivity_history">The Historical Record</string>
     <string name="title_HistoryActivity_favorites">Nonsense Hall of Fame</string>
+    <string name="title_SentenceReviewActivity">Nonsense #%d</string>
     <string name="title_ShareTo">Share to&#8230;</string>
 
     <string name="toast_Copied">Copied to clipboard.</string>
