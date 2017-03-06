@@ -8,6 +8,7 @@ import android.util.Log;
 import net.zerobandwidth.android.apps.poppycock.model.Sentence;
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
+import net.zerobandwidth.android.lib.database.querybuilder.SelectionBuilder;
 
 import java.util.ArrayList;
 
@@ -128,6 +129,62 @@ extends SQLitePortal
         crs.close() ;
         return o ;
     }
+
+	/**
+	 * Discovers the next higher ID of a sentence in the database, if any.
+	 * @param nThisID the ID of the sentence from which to search upward
+	 * @return the next higher ID, or {@link Sentence#NOT_IDENTIFIED} if no such
+	 *  value could be found
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 */
+	public synchronized long getNextSentenceID( long nThisID )
+	{
+		if( m_db == null || nThisID < 0 ) return Sentence.NOT_IDENTIFIED ;
+		Cursor crs = QueryBuilder.selectFrom( SENTENCE_TABLE_NAME )
+			.where( "item_id>?", Long.toString( nThisID ) )
+			.orderBy( "item_id", SelectionBuilder.ORDER_ASC )
+			.limit( 1 )
+			.executeOn( m_db )
+			;
+		if( ! crs.moveToFirst() )
+		{
+			SQLitePortal.closeCursor( crs ) ;
+			return Sentence.NOT_IDENTIFIED ;
+		}
+		try { return crs.getLong( crs.getColumnIndex( "item_id" ) ) ; }
+		catch( Exception x )
+		{ return Sentence.NOT_IDENTIFIED ; }
+		finally
+		{ SQLitePortal.closeCursor(crs) ; }
+	}
+
+	/**
+	 * Discovers the next lower ID of a sentence in the database, if any.
+	 * @param nThisID the ID of the sentence from which to search downward
+	 * @return the next lower ID, or {@link Sentence#NOT_IDENTIFIED} if no such
+	 *  value could be found
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 */
+	public synchronized long getPreviousSentenceID( long nThisID )
+	{
+		if( m_db == null || nThisID < 0 ) return Sentence.NOT_IDENTIFIED ;
+		Cursor crs = QueryBuilder.selectFrom( SENTENCE_TABLE_NAME )
+			.where( "item_id<?", Long.toString( nThisID ) )
+			.orderBy( "item_id", SelectionBuilder.ORDER_DESC )
+			.limit( 1 )
+			.executeOn( m_db )
+			;
+		if( ! crs.moveToFirst() )
+		{
+			SQLitePortal.closeCursor( crs ) ;
+			return Sentence.NOT_IDENTIFIED ;
+		}
+		try { return crs.getLong( crs.getColumnIndex( "item_id" ) ) ; }
+		catch( Exception x )
+		{ return Sentence.NOT_IDENTIFIED ; }
+		finally
+		{ SQLitePortal.closeCursor(crs) ; }
+	}
 
     public synchronized ArrayList<Sentence> getFavorites( boolean bOldestFirst )
     {

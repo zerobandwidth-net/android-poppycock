@@ -20,7 +20,6 @@
             android:gravity="center"
             android:src="@drawable/ic_chevron_left_black_24dp"
             android:contentDescription="@string/label_btnPrevious"
-            android:onClick="onPreviousButtonClicked"
             />
 
         <ImageButton
@@ -31,7 +30,6 @@
             android:gravity="center"
             android:src="@drawable/ic_chevron_right_black_24dp"
             android:contentDescription="@string/label_btnNext"
-            android:onClick="onNextButtonClicked"
             />
 
     </LinearLayout>
@@ -78,7 +76,6 @@
                 android:gravity="center"
                 android:src="@drawable/ic_favorite_border_black_24dp"
                 android:contentDescription="@string/label_btnFavorite"
-                android:onClick="onFavoriteToggleClicked"
                 />
 
             <ImageButton

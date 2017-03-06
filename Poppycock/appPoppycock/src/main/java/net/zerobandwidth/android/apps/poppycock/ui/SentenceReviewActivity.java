@@ -110,6 +110,40 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 		}
 	}
 
+	/**
+	 * Handles taps on the "next" or "previous" button.
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 */
+	protected class CursorButtonClickListener
+	implements ImageButton.OnClickListener
+	{
+		protected final SentenceReviewActivity m_act =
+				SentenceReviewActivity.this ;
+
+		protected final long m_nSentenceID;
+
+		public CursorButtonClickListener( long nSentenceID )
+		{ m_nSentenceID = nSentenceID ; }
+
+		@Override
+		public void onClick( View w )
+		{
+			if( m_act.getDatabase() == null )
+			{ m_act.toastDatabaseUnavailable() ; return ; }
+
+			m_act.runOnUiThread( new Runnable()
+			{
+				@Override
+				public void run()
+				{
+					m_act.setSentence(
+							m_act.m_dbh.getSentence( m_nSentenceID ) ) ;
+					m_act.updateWithData() ;
+				}
+			});
+		}
+	}
+
 /// Instance Members ///////////////////////////////////////////////////////////
 
 	/** A connection to the service which grants access to nonsense. */
@@ -127,7 +161,8 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	protected TextView m_twSentence = null ;
 	protected TextView m_twDate = null ;
 	protected ImageButton m_btnFavorite = null ;
-
+	protected ImageButton m_btnPrev = null ;
+	protected ImageButton m_btnNext = null ;
 
 /// Activity Lifecycle /////////////////////////////////////////////////////////
 
@@ -142,6 +177,10 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 				( this.findViewById( R.id.twHistoricalDate ) )) ;
 		m_btnFavorite = ((ImageButton)
 				( this.findViewById( R.id.btnFavorite ) )) ;
+		m_btnPrev = ((ImageButton)
+				( this.findViewById( R.id.btnPrevious ) )) ;
+		m_btnNext = ((ImageButton)
+				( this.findViewById( R.id.btnNext ) )) ;
 		if( bndlState != null && bndlState.containsKey( API.EXTRA_SENTENCE ) )
 		{ // Restore the sentence ID. Sentence data loaded in onResume().
 			Log.d( LOG_TAG, "Setting sentence from saved state." ) ;
@@ -244,9 +283,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 		if( this.getDatabase() == null )
 		{ // Give up.
 			Log.e( LOG_TAG, "Database unavailable for delete." ) ;
-			Toast.makeText( this, R.string.toast_DatabaseNoWorky,
-					Toast.LENGTH_SHORT )
-				.show() ;
+			this.toastDatabaseUnavailable() ;
 			return  ;
 		}
 		if( m_oSentence.bIsFavorite )
@@ -269,33 +306,6 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 				.show()
 				;
 		}
-	}
-
-	/**
-	 * Toggles the "favorite" status of the sentence on or off.
-	 * @param w the element that was tapped, if any (ignored)
-	 */
-	public void onFavoriteToggleClicked( View w )
-	{
-		// TODO
-	}
-
-	/**
-	 * Traverses to the next sentence in the DB, if any.
-	 * @param w the element that was tapped, if any (ignored)
-	 */
-	public void onNextButtonClicked( View w )
-	{
-		// TODO
-	}
-
-	/**
-	 * Traverses to the previous sentence in the DB, if any.
-	 * @param w the element that was tapped, if any (ignored)
-	 */
-	public void onPreviousButtonClicked( View w )
-	{
-		// TODO
 	}
 
 	/**
@@ -379,24 +389,42 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	}
 
 	/**
+	 * Displays a toast indicating that the database is unavailable.
+	 * @return (fluid)
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 */
+	protected SentenceReviewActivity toastDatabaseUnavailable()
+	{
+		this.runOnUiThread( new Runnable()
+		{
+			@Override
+			public void run()
+			{
+				Toast.makeText(
+						SentenceReviewActivity.this,
+						R.string.toast_DatabaseNoWorky,
+						Toast.LENGTH_SHORT )
+					.show() ;
+			}
+		});
+		return this ;
+	}
+
+	/**
 	 * Updates all of the on-screen elements based on the current sentence.
 	 * @return (fluid)
 	 */
 	protected SentenceReviewActivity updateWithData()
 	{
-		if( m_oSentence == null || m_oSentence.nItemID != m_nSentenceID )
-		{ // Load the sentence data corresponding to the ID.
-			if( this.getDatabase() == null )
-			{
-				Toast.makeText( this, R.string.toast_DatabaseNoWorky,
-						Toast.LENGTH_SHORT )
-					.show()
-					;
-				this.onBackPressed() ;
-				return this ;
-			}
-			this.setSentence( m_dbh.getSentence( m_oSentence.nItemID ) ) ;
+		if( this.getDatabase() == null )
+		{
+			this.toastDatabaseUnavailable().onBackPressed() ;
+			return this ;
 		}
+
+		if( m_oSentence == null || m_oSentence.nItemID != m_nSentenceID )
+			this.setSentence( m_dbh.getSentence( m_nSentenceID ) ) ;
+
 		this.runOnUiThread( new Runnable()
 		{ // Make sure this happens on the UI thread, so things get updated.
 
@@ -406,6 +434,26 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 			@Override
 			public void run()
 			{
+				final long nNext = m_act.m_dbh.getNextSentenceID(
+						m_act.m_oSentence.nItemID ) ;
+				if( nNext == Sentence.NOT_IDENTIFIED )
+					m_act.m_btnNext.setEnabled( false ) ;
+				else
+				{
+					m_act.m_btnNext.setEnabled( true ) ;
+					m_act.m_btnNext.setOnClickListener(
+						new CursorButtonClickListener( nNext ) ) ;
+				}
+				final long nPrev = m_act.m_dbh.getPreviousSentenceID(
+						m_act.m_oSentence.nItemID ) ;
+				if( nPrev == Sentence.NOT_IDENTIFIED )
+					m_act.m_btnPrev.setEnabled( false ) ;
+				else
+				{
+					m_act.m_btnPrev.setEnabled( true ) ;
+					m_act.m_btnPrev.setOnClickListener(
+						new CursorButtonClickListener( nPrev ) ) ;
+				}
 				m_act.m_btnFavorite.setImageResource((
 						m_oSentence.bIsFavorite ?
 							R.drawable.ic_favorite_black_24dp :
