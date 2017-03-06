@@ -23,6 +23,7 @@ import net.zerobandwidth.android.apps.poppycock.PoppycockService;
 import net.zerobandwidth.android.apps.poppycock.R;
 import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
 import net.zerobandwidth.android.apps.poppycock.model.Sentence;
+import net.zerobandwidth.android.apps.poppycock.ui.clicks.FavoriteButtonToggleListener;
 import net.zerobandwidth.android.lib.app.AppUtils;
 import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
 import net.zerobandwidth.android.lib.ui.MultitapAlertCompatDialog;
@@ -143,13 +144,13 @@ implements SimpleServiceConnection.Listener<PoppycockService>
                 btnFavorite.setContentDescription( this.m_ctx.getString(
                         R.string.label_btnFavoriteFalse ) ) ;
             }
-            btnFavorite.setOnClickListener(
-                    new FavoriteButtonClickListener( oSentence ) ) ;
+	        btnFavorite.setOnClickListener(
+		        new FavoriteButtonToggleListener( HistoryActivity.this,
+			        HistoryActivity.this.getDBFromService(), oSentence ) ) ;
 
             TextView twHistoricalNonsense = ((TextView)
                         ( wRow.findViewById( R.id.twHistoricalNonsense ) )) ;
-            twHistoricalNonsense.setText(
-                    this.m_aoSentences.get(nIndex).sSentence ) ;
+            twHistoricalNonsense.setText( oSentence.sSentence ) ;
 
             TextView twDate = ((TextView)
                         ( wRow.findViewById( R.id.twHistoricalDate ) )) ;
@@ -187,64 +188,6 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 		    Log.d( LOG_TAG, "I got clicked!" ) ;
 		    SentenceReviewActivity.API.startActivity( m_act, m_oSentence ) ;
 	    }
-    }
-
-    /**
-     * Handles the event where the user has clicked on the favorite indicator.
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
-     */
-    protected class FavoriteButtonClickListener
-    implements ImageButton.OnClickListener
-    {
-	    /**
-         * A persistent reference back to the activity.
-         * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
-         */
-        final protected HistoryActivity m_act = HistoryActivity.this ;
-
-        /**
-         * A reference to the bit of nonsense that corresponds to this element.
-         */
-        protected Sentence m_oSentence = null ;
-
-        /**
-         * A constructor which binds the listener to a sentence instance.
-         * @param oSentence the bit of nonsense to bind
-         */
-        public FavoriteButtonClickListener( Sentence oSentence )
-        {
-            super() ;
-            m_oSentence = oSentence ;
-        }
-
-        @Override
-        public void onClick( final View w )
-        {
-            Log.d( LOG_TAG, (new StringBuilder())
-                    .append( "Clicked favorite button for sentence [" )
-                    .append( m_oSentence.nItemID )
-                    .append( "]: " )
-                    .append( m_oSentence.sSentence )
-                    .toString()
-                );
-            final PoppycockDatabase db = this.m_act.getDBFromService() ;
-            if( db != null )
-            {
-                db.toggleFavorite( m_oSentence ) ;
-                m_act.runOnUiThread( new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        ((ImageButton)w).setImageResource((
-                                m_oSentence.bIsFavorite ?
-                                    R.drawable.ic_favorite_black_24dp :
-                                    R.drawable.ic_favorite_border_black_24dp
-                            )) ;
-                    }
-                });
-            }
-        }
     }
 
 	/**

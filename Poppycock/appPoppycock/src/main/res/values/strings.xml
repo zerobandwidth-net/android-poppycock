@@ -51,6 +51,7 @@
     <string name="title_DeleteOneSentence">Delete?</string>
     <string name="title_HistoryActivity_history">The Historical Record</string>
     <string name="title_HistoryActivity_favorites">Nonsense Hall of Fame</string>
+    <string name="title_SentenceReviewActivity">Nonsense #%d</string>
     <string name="title_ShareTo">Share to&#8230;</string>
 
     <string name="toast_Copied">Copied to clipboard.</string>

@@ -15,10 +15,14 @@ import net.zerobandwidth.android.apps.poppycock.PoppycockService;
 import net.zerobandwidth.android.apps.poppycock.R;
 import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
 import net.zerobandwidth.android.apps.poppycock.model.Sentence;
+import net.zerobandwidth.android.apps.poppycock.ui.clicks.FavoriteButtonToggleListener;
 import net.zerobandwidth.android.lib.app.AppUtils;
 import net.zerobandwidth.android.lib.content.ContentUtils;
 import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
 import net.zerobandwidth.android.lib.ui.MultitapAlertCompatDialog;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Displays a sentence that has already been written to the historical record,
@@ -93,17 +97,15 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 		protected final SentenceReviewActivity m_act =
 				SentenceReviewActivity.this ;
 
-		/** A persistent reference to the DB, obtained by the activity. */
-		protected final PoppycockDatabase m_db ;
-
-		/** Sets up the task for execution. */
-		public SentenceDeleter( PoppycockDatabase db )
-		{ m_db = db ; }
-
 		@Override
 		public void run()
 		{
-			if( m_db.deleteSentence( m_act.m_nSentenceID ) )
+			if( m_act.m_dbh == null )
+			{
+				Log.w( LOG_TAG, "DB unavailable during sentence deletion." ) ;
+				return ;
+			}
+			if( m_act.m_dbh.deleteSentence( m_act.m_nSentenceID ) )
 				m_act.tapBackButton() ;
 		}
 	}
@@ -112,6 +114,9 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 
 	/** A connection to the service which grants access to nonsense. */
 	protected SimpleServiceConnection<PoppycockService> m_conn = null ;
+
+	/** Persistent handle on the historical record. */
+	protected PoppycockDatabase m_dbh = null ;
 
 	/** The ID of the sentence currently displayed. */
 	protected long m_nSentenceID = NO_SENTENCE_SELECTED ;
@@ -131,28 +136,39 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	{
 		super.onCreate(bndlState) ;
 		this.setContentView( R.layout.activity_poppycock_itemreview ) ;
-		if( bndlState != null && bndlState.containsKey( API.EXTRA_SENTENCE_ID ) )
-		{ // Restore the sentence ID. Sentence data loaded in onResume().
-			Log.d( LOG_TAG, "Setting sentence ID from saved state." ) ;
-			m_nSentenceID = bndlState.getLong( API.EXTRA_SENTENCE_ID ) ;
-		}
-		else
-		{ // See if we are starting from scratch with an intent?
-			final Intent sig = this.getIntent() ;
-			if( sig != null && sig.hasExtra( API.EXTRA_SENTENCE ) && m_nSentenceID == NO_SENTENCE_SELECTED )
-			{ // Set the sentence ID from the intent's extra.
-				Log.d( LOG_TAG, "Setting sentence ID from intent extra." ) ;
-				m_oSentence = this.getIntent()
-					.getParcelableExtra( API.EXTRA_SENTENCE ) ;
-				m_nSentenceID = m_oSentence.nItemID ;
-			}
-		}
 		m_twSentence = ((TextView)
 				( this.findViewById( R.id.twHistoricalNonsense ) )) ;
 		m_twDate = ((TextView)
 				( this.findViewById( R.id.twHistoricalDate ) )) ;
 		m_btnFavorite = ((ImageButton)
 				( this.findViewById( R.id.btnFavorite ) )) ;
+		if( bndlState != null && bndlState.containsKey( API.EXTRA_SENTENCE ) )
+		{ // Restore the sentence ID. Sentence data loaded in onResume().
+			Log.d( LOG_TAG, "Setting sentence from saved state." ) ;
+			final Sentence o = bndlState.getParcelable( API.EXTRA_SENTENCE ) ;
+			if( o == null )
+			{
+				Log.e( LOG_TAG, "Got null sentence parcel from intent extra." ) ;
+				this.onBackPressed() ;
+			}
+			this.setSentence( o ) ;
+		}
+		else
+		{ // See if we are starting from scratch with an intent?
+			final Intent sig = this.getIntent() ;
+			if( sig != null && sig.hasExtra( API.EXTRA_SENTENCE ) && m_nSentenceID == NO_SENTENCE_SELECTED )
+			{ // Set from intent extra only if never selected before.
+				Log.d( LOG_TAG, "Setting sentence ID from intent extra." ) ;
+				final Sentence o = this.getIntent()
+					.getParcelableExtra( API.EXTRA_SENTENCE ) ;
+				if( o == null )
+				{
+					Log.e( LOG_TAG, "Got null sentence parcel from state bundle." ) ;
+					this.onBackPressed() ;
+				}
+				this.setSentence( o ) ;
+			}
+		}
 		AppUtils.initBackButtonForActivity(this) ;
 		PoppycockService.API.kickoff(this) ;
 	}
@@ -164,7 +180,10 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 		if( m_conn == null )
 			m_conn = new SimpleServiceConnection<>( PoppycockService.class ) ;
 		if( m_conn.isConnected() )
-			this.updateWithData() ;
+		{
+			m_dbh = this.getDatabase() ;
+			this.updateWithData();
+		}
 		else
 			m_conn.addListener(this).connect(this) ;
 	}
@@ -187,6 +206,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	{
 		super.onSaveInstanceState( bndlState ) ;
 		bndlState.putLong( API.EXTRA_SENTENCE_ID, m_nSentenceID ) ;
+		bndlState.putParcelable( API.EXTRA_SENTENCE, m_oSentence ) ;
 	}
 
 	@Override
@@ -203,6 +223,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	public void onServiceConnected( SimpleServiceConnection<PoppycockService> conn )
 	{
 		Log.d( LOG_TAG, "Connected to service." ) ;
+		this.getDatabase() ;
 		this.updateWithData() ;
 	}
 
@@ -220,8 +241,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	 */
 	public void onDeleteButtonClicked( View w )
 	{
-		final PoppycockDatabase db = this.getDBFromService() ;
-		if( db == null )
+		if( this.getDatabase() == null )
 		{ // Give up.
 			Log.e( LOG_TAG, "Database unavailable for delete." ) ;
 			Toast.makeText( this, R.string.toast_DatabaseNoWorky,
@@ -234,7 +254,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 			( new MultitapAlertCompatDialog( this,
 					R.string.title_DeleteOneSentence,
 					R.string.message_DeleteOneSentence_favorite ))
-				.setStandardButtons( new SentenceDeleter(db), null )
+				.setStandardButtons( new SentenceDeleter(), null )
 				.setPositiveTapsRequired( 10 )
 				.show()
 				;
@@ -244,7 +264,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 			( new MultitapAlertCompatDialog( this,
 					R.string.title_DeleteOneSentence,
 					R.string.message_DeleteOneSentence ))
-				.setStandardButtons( new SentenceDeleter(db), null )
+				.setStandardButtons( new SentenceDeleter(), null )
 				.setPositiveTapsRequired( 3 )
 				.show()
 				;
@@ -320,12 +340,14 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	 * Fetches the database only if it's usable.
 	 * @return the app's database, only if it is usable; {@code null} otherwise
 	 */
-	protected PoppycockDatabase getDBFromService()
+	protected PoppycockDatabase getDatabase()
 	{
+		if( m_dbh != null ) return m_dbh ;
 		if( m_conn == null || ! m_conn.isConnected() ) return null ;
 		final PoppycockDatabase db = m_conn.getServiceInstance().getDB() ;
 		if( ! db.isConnected() ) return null ; // Can't use it if not connected.
-		return db ;
+		m_dbh = db ;
+		return m_dbh ;
 	}
 
 	/**
@@ -345,12 +367,61 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	}
 
 	/**
+	 * Sets the sentence data for the activity.
+	 * @param o the sentence to set
+	 * @return (fluid)
+	 */
+	protected SentenceReviewActivity setSentence( Sentence o )
+	{
+		m_oSentence = o ;
+		m_nSentenceID = m_oSentence.nItemID ;
+		return this ;
+	}
+
+	/**
 	 * Updates all of the on-screen elements based on the current sentence.
 	 * @return (fluid)
 	 */
 	protected SentenceReviewActivity updateWithData()
 	{
-		// TODO fetch the sentence and update the whole screen
+		if( m_oSentence == null || m_oSentence.nItemID != m_nSentenceID )
+		{ // Load the sentence data corresponding to the ID.
+			if( this.getDatabase() == null )
+			{
+				Toast.makeText( this, R.string.toast_DatabaseNoWorky,
+						Toast.LENGTH_SHORT )
+					.show()
+					;
+				this.onBackPressed() ;
+				return this ;
+			}
+			this.setSentence( m_dbh.getSentence( m_oSentence.nItemID ) ) ;
+		}
+		this.runOnUiThread( new Runnable()
+		{ // Make sure this happens on the UI thread, so things get updated.
+
+			final SentenceReviewActivity m_act =
+					SentenceReviewActivity.this ;
+
+			@Override
+			public void run()
+			{
+				m_act.m_btnFavorite.setImageResource((
+						m_oSentence.bIsFavorite ?
+							R.drawable.ic_favorite_black_24dp :
+							R.drawable.ic_favorite_border_black_24dp
+					)) ;
+				if( m_act.m_btnFavorite != null )
+				{
+					m_act.m_btnFavorite.setOnClickListener(
+						new FavoriteButtonToggleListener(
+							m_act, m_act.getDatabase(), m_oSentence ) ) ;
+				}
+				m_act.m_twSentence.setText( m_oSentence.sSentence ) ;
+				m_act.m_twDate.setText( SimpleDateFormat.getDateTimeInstance()
+					.format( new Date( m_oSentence.nItemTS ) )) ;
+			}
+		});
 		return this ;
 	}
 }
