@@ -36,9 +36,19 @@
         of Fame! Doing such a thing is inconceivable! But if you really mean it,
         just keep tapping that button&#8230;
     </string>
+    <string name="message_DeleteOneSentence">
+        Do you really want to delete this bit of nonsense from the historical
+        record?
+    </string>
+    <string name="message_DeleteOneSentence_favorite">
+        Do you really want to delete this Nonsense Hall of Fame inductee from
+        the historical record? Such an action cannot be undone! What will your
+        children\'s children say when you deny them this work of art?
+    </string>
 
     <string name="title_DeleteHistory">Delete the Historical Record?</string>
     <string name="title_DeleteFavorites">Delete the Nonsense Hall of Fame?!</string>
+    <string name="title_DeleteOneSentence">Delete?</string>
     <string name="title_HistoryActivity_history">The Historical Record</string>
     <string name="title_HistoryActivity_favorites">Nonsense Hall of Fame</string>
     <string name="title_ShareTo">Share to&#8230;</string>

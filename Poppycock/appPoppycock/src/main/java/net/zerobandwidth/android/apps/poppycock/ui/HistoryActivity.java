@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -121,6 +122,11 @@ implements SimpleServiceConnection.Listener<PoppycockService>
             @SuppressLint( "ViewHolder" ) View wRow = infl.inflate(
                     R.layout.listitem_poppycock_sentence, awParent, false ) ;
 
+	        LinearLayout layListItemTextArea = ((LinearLayout)
+			        ( wRow.findViewById( R.id.laySentenceListItemTextArea ) )) ;
+	        layListItemTextArea.setOnClickListener(
+			        new ListItemClickListener( oSentence ) ) ;
+
             ImageButton btnFavorite = ((ImageButton)
                         ( wRow.findViewById( R.id.btnFavorite ) )) ;
             if( oSentence.bIsFavorite )
@@ -152,6 +158,35 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 
             return wRow ;
         }
+    }
+
+	/**
+	 * Handles the event where the user has clicked on the text area containing
+	 * one of the sentences.
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 */
+	protected class ListItemClickListener
+    implements View.OnClickListener
+    {
+	    /** A persistent reference back to the activity. */
+        protected final HistoryActivity m_act = HistoryActivity.this ;
+
+	    /** A reference to the bit of nonsense shown in this element. */
+	    protected Sentence m_oSentence = null ;
+
+	    /**
+	     * A constructor which binds the listener to a sentence instance.
+	     * @param o the bit of nonsense to bind
+	     */
+	    public ListItemClickListener( Sentence o )
+	    { super() ; m_oSentence = o ; }
+
+	    @Override
+	    public void onClick( final View w )
+	    {
+		    Log.d( LOG_TAG, "I got clicked!" ) ;
+		    SentenceReviewActivity.API.startActivity( m_act, m_oSentence ) ;
+	    }
     }
 
     /**
@@ -239,7 +274,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
                     ;
                 return ;
             }
-            db.delete(( m_zDeletionSet == API.MODE_FAVORITES )) ;
+            db.deleteCategory(( m_zDeletionSet == API.MODE_FAVORITES )) ;
             this.m_act.populate() ;
         }
 

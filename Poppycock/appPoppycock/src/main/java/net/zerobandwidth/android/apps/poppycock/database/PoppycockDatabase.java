@@ -7,6 +7,7 @@ import android.util.Log;
 
 import net.zerobandwidth.android.apps.poppycock.model.Sentence;
 import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
 
 import java.util.ArrayList;
 
@@ -221,13 +222,30 @@ extends SQLitePortal
      * @param bFavorites if true, then only favorites will be deleted; if false,
      *                   then only non-favorites will be deleted
      * @return the number of records deleted
+     * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+     *  (renamed from {@code delete()})
      */
     @SuppressWarnings( "UnnecessaryLocalVariable" ) // I respectlessly disagree.
-    public synchronized int delete( boolean bFavorites )
+    public synchronized int deleteCategory( boolean bFavorites )
     {
         if( m_db == null ) return 0 ;
         final int nCount = m_db.delete( SENTENCE_TABLE_NAME, "favorite=?",
                 new String[] { Integer.toString( boolToInt(bFavorites) ) } ) ;
         return nCount ;
     }
+
+	/**
+	 * Deletes one sentence from the historical record.
+	 * @param nSentenceID the ID of the sentence to be deleted.
+	 * @return {@code true} if the record was deleted
+	 */
+	public synchronized boolean deleteSentence( long nSentenceID )
+	{
+		if( nSentenceID == Sentence.NOT_IDENTIFIED ) return false ;
+		final int nCount = QueryBuilder.deleteFrom( SENTENCE_TABLE_NAME )
+				.where( "item_id=?", Long.toString( nSentenceID ) )
+				.executeOn( m_db )
+				;
+		return intToBool( nCount ) ;
+	}
 }

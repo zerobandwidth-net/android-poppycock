@@ -17,15 +17,9 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".ui.HistoryActivity"
-            android:parentActivityName=".ui.MainActivity"
-            />
+        <activity android:name=".ui.HistoryActivity" />
 
-        <activity
-            android:name=".ui.SentenceReviewActivity"
-            android:parentActivityName=".ui.HistoryActivity"
-            />
+        <activity android:name=".ui.SentenceReviewActivity" />
 
         <service
             android:name=".PoppycockService"

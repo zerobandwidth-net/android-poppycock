@@ -18,6 +18,7 @@ import net.zerobandwidth.android.apps.poppycock.model.Sentence;
 import net.zerobandwidth.android.lib.app.AppUtils;
 import net.zerobandwidth.android.lib.content.ContentUtils;
 import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
+import net.zerobandwidth.android.lib.ui.MultitapAlertCompatDialog;
 
 /**
  * Displays a sentence that has already been written to the historical record,
@@ -60,17 +61,50 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 		public static final String EXTRA_SENTENCE_ID =
 				EXTRA_PREFIX + "SENTENCE_ID" ;
 
+		/** Tag for the extra that contains the emparcelled sentence data. */
+		public static final String EXTRA_SENTENCE =
+				EXTRA_PREFIX + "SENTENCE_DATA" ;
+
 		/**
 		 * Start the activity, displaying the specified ID.
 		 * @param ctx the context which is requesting the activity
-		 * @param nSentenceID the ID of the sentence to be displayed
+		 * @param o the sentence to be displayed
 		 */
-		public static void startActivity( Context ctx, long nSentenceID )
+		public static void startActivity( Context ctx, Sentence o )
 		{
 			Log.d( LOG_TAG, "Kicking off sentence review activity..." ) ;
 			Intent sig = new Intent( ctx, SentenceReviewActivity.class ) ;
-			sig.putExtra( EXTRA_SENTENCE_ID, nSentenceID ) ;
+//			sig.putExtra( EXTRA_SENTENCE_ID, o.nItemID ) ;
+			sig.putExtra( EXTRA_SENTENCE, o ) ;
 			ctx.startActivity( sig ) ;
+		}
+	}
+
+/// Inner classes //////////////////////////////////////////////////////////////
+
+	/**
+	 * Deletes the sentence being displayed.
+	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 */
+	protected class SentenceDeleter
+	implements Runnable
+	{
+		/** A persistent reference back to the activity. */
+		protected final SentenceReviewActivity m_act =
+				SentenceReviewActivity.this ;
+
+		/** A persistent reference to the DB, obtained by the activity. */
+		protected final PoppycockDatabase m_db ;
+
+		/** Sets up the task for execution. */
+		public SentenceDeleter( PoppycockDatabase db )
+		{ m_db = db ; }
+
+		@Override
+		public void run()
+		{
+			if( m_db.deleteSentence( m_act.m_nSentenceID ) )
+				m_act.tapBackButton() ;
 		}
 	}
 
@@ -105,11 +139,12 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 		else
 		{ // See if we are starting from scratch with an intent?
 			final Intent sig = this.getIntent() ;
-			if( sig != null && sig.hasExtra( API.EXTRA_SENTENCE_ID ) && m_nSentenceID == NO_SENTENCE_SELECTED )
+			if( sig != null && sig.hasExtra( API.EXTRA_SENTENCE ) && m_nSentenceID == NO_SENTENCE_SELECTED )
 			{ // Set the sentence ID from the intent's extra.
 				Log.d( LOG_TAG, "Setting sentence ID from intent extra." ) ;
-				m_nSentenceID = this.getIntent()
-                    .getLongExtra( API.EXTRA_SENTENCE_ID, NO_SENTENCE_SELECTED ) ;
+				m_oSentence = this.getIntent()
+					.getParcelableExtra( API.EXTRA_SENTENCE ) ;
+				m_nSentenceID = m_oSentence.nItemID ;
 			}
 		}
 		m_twSentence = ((TextView)
@@ -185,7 +220,35 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	 */
 	public void onDeleteButtonClicked( View w )
 	{
-		// TODO
+		final PoppycockDatabase db = this.getDBFromService() ;
+		if( db == null )
+		{ // Give up.
+			Log.e( LOG_TAG, "Database unavailable for delete." ) ;
+			Toast.makeText( this, R.string.toast_DatabaseNoWorky,
+					Toast.LENGTH_SHORT )
+				.show() ;
+			return  ;
+		}
+		if( m_oSentence.bIsFavorite )
+		{ // Demand more taps on the delete button.
+			( new MultitapAlertCompatDialog( this,
+					R.string.title_DeleteOneSentence,
+					R.string.message_DeleteOneSentence_favorite ))
+				.setStandardButtons( new SentenceDeleter(db), null )
+				.setPositiveTapsRequired( 10 )
+				.show()
+				;
+		}
+		else
+		{
+			( new MultitapAlertCompatDialog( this,
+					R.string.title_DeleteOneSentence,
+					R.string.message_DeleteOneSentence ))
+				.setStandardButtons( new SentenceDeleter(db), null )
+				.setPositiveTapsRequired( 3 )
+				.show()
+				;
+		}
 	}
 
 	/**
@@ -238,6 +301,17 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 					Toast.LENGTH_SHORT )
 				.show() ;
 		}
+	}
+
+	/** Ghost-presses the back button to close this activity. */
+	public void tapBackButton()
+	{
+		this.runOnUiThread( new Runnable()
+		{
+			@Override
+			public void run()
+			{ SentenceReviewActivity.this.onBackPressed() ; }
+		});
 	}
 
 /// Other instance methods /////////////////////////////////////////////////////
