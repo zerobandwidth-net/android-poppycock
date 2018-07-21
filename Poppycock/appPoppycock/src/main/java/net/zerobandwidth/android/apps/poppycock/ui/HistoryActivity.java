@@ -120,7 +120,8 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 
             LayoutInflater infl = ((LayoutInflater)
                 ( m_ctx.getSystemService( Context.LAYOUT_INFLATER_SERVICE ) )) ;
-            @SuppressLint( "ViewHolder" ) View wRow = infl.inflate(
+			//noinspection ConstantConditions
+			@SuppressLint("ViewHolder") View wRow = infl.inflate(
                     R.layout.listitem_poppycock_sentence, awParent, false ) ;
 
 	        LinearLayout layListItemTextArea = ((LinearLayout)

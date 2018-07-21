@@ -15,8 +15,7 @@ import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
 public class PoppycockService
 extends Service
 {
-    protected static final String LOG_TAG =
-            PoppycockService.class.getSimpleName() ;
+//    protected static final String LOG_TAG = PoppycockService.class.getSimpleName() ;
 
 /// Static Service API /////////////////////////////////////////////////////////
 

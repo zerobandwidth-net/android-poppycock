@@ -8,9 +8,11 @@ import android.util.Log;
 import net.zerobandwidth.android.apps.poppycock.model.Sentence;
 import net.zerobandwidth.android.lib.database.SQLitePortal;
 import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
-import net.zerobandwidth.android.lib.database.querybuilder.SelectionBuilder;
 
 import java.util.ArrayList;
+
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_ASC;
+import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_DESC;
 
 /**
  * Provides access to an SQLite database in which we keep historical nonsense.
@@ -142,7 +144,7 @@ extends SQLitePortal
 		if( m_db == null || nThisID < 0 ) return Sentence.NOT_IDENTIFIED ;
 		Cursor crs = QueryBuilder.selectFrom( SENTENCE_TABLE_NAME )
 			.where( "item_id>?", Long.toString( nThisID ) )
-			.orderBy( "item_id", SelectionBuilder.ORDER_ASC )
+			.orderBy( "item_id", SQL_ORDER_ASC )
 			.limit( 1 )
 			.executeOn( m_db )
 			;
@@ -170,7 +172,7 @@ extends SQLitePortal
 		if( m_db == null || nThisID < 0 ) return Sentence.NOT_IDENTIFIED ;
 		Cursor crs = QueryBuilder.selectFrom( SENTENCE_TABLE_NAME )
 			.where( "item_id<?", Long.toString( nThisID ) )
-			.orderBy( "item_id", SelectionBuilder.ORDER_DESC )
+			.orderBy( "item_id", SQL_ORDER_DESC )
 			.limit( 1 )
 			.executeOn( m_db )
 			;
