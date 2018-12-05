@@ -1,18 +1,18 @@
-package net.zerobandwidth.android.apps.poppycock.model;
+package net.zer0bandwidth.android.apps.poppycock.model;
 
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import net.zerobandwidth.android.lib.database.SQLitePortal;
+import net.zer0bandwidth.android.lib.database.SQLitePortal;
 
 import java.util.Date;
 
 /**
  * Container for a nonsense sentence, suitable for marshalling into the
  * database. Unlike other data objects, this one does not hide its fields.
- * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+ * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
  */
 public class Sentence
 implements Parcelable
@@ -73,7 +73,7 @@ implements Parcelable
     /**
      * Parcelizer for the {@link Sentence} class, required by the
      * {@link Parcelable} interface.
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     public static class Parceler
     implements Creator<Sentence>

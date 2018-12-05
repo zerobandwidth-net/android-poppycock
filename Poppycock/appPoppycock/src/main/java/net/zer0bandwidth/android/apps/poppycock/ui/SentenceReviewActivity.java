@@ -1,4 +1,4 @@
-package net.zerobandwidth.android.apps.poppycock.ui;
+package net.zer0bandwidth.android.apps.poppycock.ui;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,15 +11,15 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import net.zerobandwidth.android.apps.poppycock.PoppycockService;
-import net.zerobandwidth.android.apps.poppycock.R;
-import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
-import net.zerobandwidth.android.apps.poppycock.model.Sentence;
-import net.zerobandwidth.android.apps.poppycock.ui.clicks.FavoriteButtonToggleListener;
-import net.zerobandwidth.android.lib.app.AppUtils;
-import net.zerobandwidth.android.lib.content.ContentUtils;
-import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
-import net.zerobandwidth.android.lib.ui.MultitapAlertCompatDialog;
+import net.zer0bandwidth.android.apps.poppycock.PoppycockService;
+import net.zer0bandwidth.android.apps.poppycock.R;
+import net.zer0bandwidth.android.apps.poppycock.database.PoppycockDatabase;
+import net.zer0bandwidth.android.apps.poppycock.model.Sentence;
+import net.zer0bandwidth.android.apps.poppycock.ui.clicks.FavoriteButtonToggleListener;
+import net.zer0bandwidth.android.lib.app.AppUtils;
+import net.zer0bandwidth.android.lib.content.ContentUtils;
+import net.zer0bandwidth.android.lib.services.SimpleServiceConnection;
+import net.zer0bandwidth.android.lib.ui.MultitapAlertCompatDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,7 +27,7 @@ import java.util.Date;
 /**
  * Displays a sentence that has already been written to the historical record,
  * allowing the user to review or dispose it.
- * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+ * @since zer0bandwidth-net/android-poppycock 1.0.2 (#5)
  */
 public class SentenceReviewActivity
 extends AppCompatActivity
@@ -47,7 +47,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	/**
 	 * Provides static methods for kicking off instances of the
 	 * {@link SentenceReviewActivity}.
-	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 * @since zer0bandwidth-net/android-poppycock 1.0.2 (#5)
 	 */
 	public static class API
 	{
@@ -56,7 +56,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 		 * intents.
 		 */
 		public static final String EXTRA_PREFIX =
-			"net.zerobandwidth.android.extras.poppycock.SentenceReviewActivity." ;
+			"net.zer0bandwidth.android.extras.poppycock.SentenceReviewActivity." ;
 
 		/**
 		 * Tag for the extra that contains the ID of the sentence to be
@@ -88,7 +88,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 
 	/**
 	 * Deletes the sentence being displayed.
-	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 * @since zer0bandwidth-net/android-poppycock 1.0.2 (#5)
 	 */
 	protected class SentenceDeleter
 	implements Runnable
@@ -112,7 +112,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 
 	/**
 	 * Handles taps on the "next" or "previous" button.
-	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 * @since zer0bandwidth-net/android-poppycock 1.0.2 (#5)
 	 */
 	protected class CursorButtonClickListener
 	implements ImageButton.OnClickListener
@@ -391,7 +391,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	/**
 	 * Displays a toast indicating that the database is unavailable.
 	 * @return (fluid)
-	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 * @since zer0bandwidth-net/android-poppycock 1.0.2 (#5)
 	 */
 	protected SentenceReviewActivity toastDatabaseUnavailable()
 	{

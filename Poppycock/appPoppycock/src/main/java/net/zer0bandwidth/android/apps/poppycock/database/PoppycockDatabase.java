@@ -1,22 +1,22 @@
-package net.zerobandwidth.android.apps.poppycock.database;
+package net.zer0bandwidth.android.apps.poppycock.database;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import net.zerobandwidth.android.apps.poppycock.model.Sentence;
-import net.zerobandwidth.android.lib.database.SQLitePortal;
-import net.zerobandwidth.android.lib.database.querybuilder.QueryBuilder;
+import net.zer0bandwidth.android.apps.poppycock.model.Sentence;
+import net.zer0bandwidth.android.lib.database.SQLitePortal;
+import net.zer0bandwidth.android.lib.database.querybuilder.QueryBuilder;
 
 import java.util.ArrayList;
 
-import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_ASC;
-import static net.zerobandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_DESC;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_ASC;
+import static net.zer0bandwidth.android.lib.database.SQLiteSyntax.SQL_ORDER_DESC;
 
 /**
  * Provides access to an SQLite database in which we keep historical nonsense.
- * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+ * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
  */
 public class PoppycockDatabase
 extends SQLitePortal
@@ -88,7 +88,7 @@ extends SQLitePortal
         // Nothing to do yet.
     }
 
-/// net.zerobandwidth.android.lib.database.SQLitePortal (trivial) //////////////
+/// net.zer0bandwidth.android.lib.database.SQLitePortal (trivial) //////////////
 
     @Override
     public PoppycockDatabase openDB() { super.openDB() ; return this ; }
@@ -137,7 +137,7 @@ extends SQLitePortal
 	 * @param nThisID the ID of the sentence from which to search upward
 	 * @return the next higher ID, or {@link Sentence#NOT_IDENTIFIED} if no such
 	 *  value could be found
-	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 * @since zer0bandwidth-net/android-poppycock 1.0.2 (#5)
 	 */
 	public synchronized long getNextSentenceID( long nThisID )
 	{
@@ -165,7 +165,7 @@ extends SQLitePortal
 	 * @param nThisID the ID of the sentence from which to search downward
 	 * @return the next lower ID, or {@link Sentence#NOT_IDENTIFIED} if no such
 	 *  value could be found
-	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 * @since zer0bandwidth-net/android-poppycock 1.0.2 (#5)
 	 */
 	public synchronized long getPreviousSentenceID( long nThisID )
 	{
@@ -224,7 +224,7 @@ extends SQLitePortal
      * @param bOldestFirst specifies whether to sort oldest-first ({@code true})
      *                     or newest-first ({@code false})
      * @return all the nonsense
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#3)
      */
     public synchronized ArrayList<Sentence> getHistory( boolean bOldestFirst )
     {
@@ -259,7 +259,7 @@ extends SQLitePortal
 	 * Anoints some nonsense to the hall of fame, or demotes it to obscurity.
      * @param o the sentence to be toggled
      * @return the updated sentence
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#3)
      */
     public synchronized Sentence toggleFavorite( Sentence o )
     {
@@ -281,7 +281,7 @@ extends SQLitePortal
      * @param bFavorites if true, then only favorites will be deleted; if false,
      *                   then only non-favorites will be deleted
      * @return the number of records deleted
-     * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+     * @since zer0bandwidth-net/android-poppycock 1.0.2 (#5)
      *  (renamed from {@code delete()})
      */
     @SuppressWarnings( "UnnecessaryLocalVariable" ) // I respectlessly disagree.

@@ -1,4 +1,4 @@
-package net.zerobandwidth.android.apps.poppycock;
+package net.zer0bandwidth.android.apps.poppycock;
 
 import org.junit.Test;
 

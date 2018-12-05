@@ -1,18 +1,18 @@
-package net.zerobandwidth.android.apps.poppycock.ui.clicks;
+package net.zer0bandwidth.android.apps.poppycock.ui.clicks;
 
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 
-import net.zerobandwidth.android.apps.poppycock.R;
-import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
-import net.zerobandwidth.android.apps.poppycock.model.Sentence;
+import net.zer0bandwidth.android.apps.poppycock.R;
+import net.zer0bandwidth.android.apps.poppycock.database.PoppycockDatabase;
+import net.zer0bandwidth.android.apps.poppycock.model.Sentence;
 
 /**
  * Provides a common implementation of a click listener for the various
  * manifestations of image buttons that toggle "favorite" status for a sentence.
- * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+ * @since zer0bandwidth-net/android-poppycock 1.0.2 (#5)
  */
 public class FavoriteButtonToggleListener
 implements ImageButton.OnClickListener
