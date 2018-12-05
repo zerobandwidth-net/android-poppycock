@@ -1,16 +1,19 @@
 /*
  * The zerobandwidth "android" library is available at:
- * https://github.com/zerobandwidth-net/android
+ * https://github.com/zer0bandwidth-net/android
  *
  * Add the following to your global `gradle.properties` file to properly link to
  * the library:
  *
- * lib_zerobandwidth_android=/local/path/to/zerobandwidth-net/android/android_lib
+ * lib_zerobandwidth_android=/local/path/to/zer0bandwidth-net/android/android_lib
  *
  * ...where "/local/path/to/" is replaced with the actual local path to the
  * library.
  */
-include ':libAndroid'
-project (':libAndroid').projectDir = new File(lib_zerobandwidth_android)
+
+// Un-comment the lines below to pull the zerobandwidth Android Library from a
+// local view instead of the jCenter repository:
+//include ':libZeroAndroid'
+//project (':libZeroAndroid').projectDir = new File(lib_zerobandwidth_android)
 
 include ':appPoppycock'

@@ -1,4 +1,4 @@
-package net.zerobandwidth.android.apps.poppycock;
+package net.zer0bandwidth.android.apps.poppycock;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("net.zerobandwidth.android.apps.poppycock", appContext.getPackageName());
+        assertEquals("net.zer0bandwidth.android.apps.poppycock", appContext.getPackageName());
     }
 }

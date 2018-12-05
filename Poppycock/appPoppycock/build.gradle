@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     buildToolsVersion "27.0.3"
     defaultConfig {
-        applicationId "net.zerobandwidth.android.apps.poppycock"
+        applicationId "net.zer0bandwidth.android.apps.poppycock"
         minSdkVersion 16
         targetSdkVersion 27
         versionCode 3
@@ -25,6 +25,12 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation project(path: ':libAndroid')
+
+    // Use this directive to pull the zerobandwidth Android Library from jCenter.
+    implementation 'net.zer0bandwidth.android:lib:1.0.0'
+
+    // Use the following directives to pull the library from a local view.
+//    implementation project( path: ':libZeroAndroid' )
+
     testImplementation 'junit:junit:4.12'
 }

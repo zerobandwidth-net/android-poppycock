@@ -1,4 +1,4 @@
-package net.zerobandwidth.android.apps.poppycock.ui;
+package net.zer0bandwidth.android.apps.poppycock.ui;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -19,15 +19,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import net.zerobandwidth.android.apps.poppycock.PoppycockService;
-import net.zerobandwidth.android.apps.poppycock.R;
-import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
-import net.zerobandwidth.android.apps.poppycock.model.Sentence;
-import net.zerobandwidth.android.apps.poppycock.ui.clicks.FavoriteButtonToggleListener;
-import net.zerobandwidth.android.lib.app.AppUtils;
-import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
-import net.zerobandwidth.android.lib.ui.MultitapAlertCompatDialog;
-import net.zerobandwidth.android.lib.view.updaters.MenuItemUpdater;
+import net.zer0bandwidth.android.apps.poppycock.PoppycockService;
+import net.zer0bandwidth.android.apps.poppycock.R;
+import net.zer0bandwidth.android.apps.poppycock.database.PoppycockDatabase;
+import net.zer0bandwidth.android.apps.poppycock.model.Sentence;
+import net.zer0bandwidth.android.apps.poppycock.ui.clicks.FavoriteButtonToggleListener;
+import net.zer0bandwidth.android.lib.app.AppUtils;
+import net.zer0bandwidth.android.lib.services.SimpleServiceConnection;
+import net.zer0bandwidth.android.lib.ui.MultitapAlertCompatDialog;
+import net.zer0bandwidth.android.lib.view.updaters.MenuItemUpdater;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * This activity shows the historical record of nonsense, or the nonsense hall
  * of fame.
- * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+ * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
  */
 public class HistoryActivity
 extends AppCompatActivity
@@ -50,13 +50,13 @@ implements SimpleServiceConnection.Listener<PoppycockService>
     /**
      * Provides static methods for creating the {@link Intent}s that change the
      * behavior of the activity.
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     public static class API
     {
         /** Qualifier prepended to extras for this activity's intents. */
         public static final String EXTRA_PREFIX =
-            "net.zerobandwidth.android.extras.poppycock.HistoryActivity." ;
+            "net.zer0bandwidth.android.extras.poppycock.HistoryActivity." ;
 
         /** Tag for the extra that dictates the behavior of the activity. */
         public static final String EXTRA_TAG_MODE =
@@ -94,7 +94,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
     /**
      * Adapter for the view that shows the list of sentences in the historical
      * record.
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     protected class SentenceListAdapter
     extends ArrayAdapter<Sentence>
@@ -165,7 +165,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	/**
 	 * Handles the event where the user has clicked on the text area containing
 	 * one of the sentences.
-	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#5)
+	 * @since zer0bandwidth-net/android-poppycock 1.0.2 (#5)
 	 */
 	protected class ListItemClickListener
     implements View.OnClickListener
@@ -193,7 +193,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 
 	/**
      * Purges nonsense from the historical record, and updates the UI.
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#3)
      */
     protected class WinstonSmith
     implements Runnable
@@ -260,7 +260,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 
 	/**
      * A persistent binding to the menu item for switching window modes.
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#3)
      */
     protected MenuItem m_miSwitchMode = null ;
 
@@ -484,7 +484,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	/**
 	 * Switches operating mode in response to a button press.
      * @return (fluid)
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#3)
      */
     protected HistoryActivity switchMode()
     {
@@ -521,7 +521,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	/**
 	 * Updates the icon and caption for the mode switcher button.
      * @return (fluid)
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#3)
      */
     protected HistoryActivity updateModeMenuItem()
     {
@@ -546,7 +546,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	/**
      * Updates the window title in response to a mode switch.
      * @return (fluid)
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#3)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#3)
      */
     protected HistoryActivity updateTitleForMode()
     {

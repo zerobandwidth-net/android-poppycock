@@ -1,16 +1,16 @@
-package net.zerobandwidth.android.apps.poppycock;
+package net.zer0bandwidth.android.apps.poppycock;
 
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 
-import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
-import net.zerobandwidth.android.lib.content.IntentUtils;
-import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
+import net.zer0bandwidth.android.apps.poppycock.database.PoppycockDatabase;
+import net.zer0bandwidth.android.lib.content.IntentUtils;
+import net.zer0bandwidth.android.lib.services.SimpleServiceConnection;
 
 /**
  * Provides a persistent object to handle database connections, etc.
- * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+ * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
  */
 public class PoppycockService
 extends Service
@@ -22,13 +22,13 @@ extends Service
     /**
      * Provides static methods for creating the {@link Intent}s that trigger
      * events inside the service.
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     public static class API
     {
         /** Qualifier prepended to all actions. */
         public static final String ACTION_PREFIX =
-            "net.zerobandwidth.android.actions.poppycock.PoppycockService." ;
+            "net.zer0bandwidth.android.actions.poppycock.PoppycockService." ;
 
         /** Action to kick off the service. */
         public static final String ACTION_KICKOFF = ACTION_PREFIX + "KICKOFF" ;
@@ -49,7 +49,7 @@ extends Service
     /**
      * An implementation of the {@link android.os.Binder} class which simply
      * returns this instance of the service.
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     public class Binder extends android.os.Binder
     implements SimpleServiceConnection.InstanceBinder

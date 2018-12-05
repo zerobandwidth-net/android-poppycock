@@ -1,4 +1,4 @@
-package net.zerobandwidth.android.apps.poppycock.ui;
+package net.zer0bandwidth.android.apps.poppycock.ui;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -9,17 +9,17 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import net.zerobandwidth.android.apps.poppycock.PoppycockService;
-import net.zerobandwidth.android.apps.poppycock.R;
-import net.zerobandwidth.android.apps.poppycock.database.PoppycockDatabase;
-import net.zerobandwidth.android.apps.poppycock.model.Sentence;
-import net.zerobandwidth.android.lib.content.ContentUtils;
-import net.zerobandwidth.android.lib.nonsense.NonsenseBuilder;
-import net.zerobandwidth.android.lib.services.SimpleServiceConnection;
+import net.zer0bandwidth.android.apps.poppycock.PoppycockService;
+import net.zer0bandwidth.android.apps.poppycock.R;
+import net.zer0bandwidth.android.apps.poppycock.database.PoppycockDatabase;
+import net.zer0bandwidth.android.apps.poppycock.model.Sentence;
+import net.zer0bandwidth.android.lib.content.ContentUtils;
+import net.zer0bandwidth.android.lib.nonsense.NonsenseBuilder;
+import net.zer0bandwidth.android.lib.services.SimpleServiceConnection;
 
 /**
  * The app's main activity.
- * @since zerobandwidth-net/android-poppycock 0.0.1 (#1)
+ * @since zer0bandwidth-net/android-poppycock 0.0.1 (#1)
  */
 public class MainActivity
 extends AppCompatActivity
@@ -32,13 +32,13 @@ implements SimpleServiceConnection.Listener<PoppycockService>
      * nonsense.
      */
     protected static final String EXTRA_TAG_LAST_NONSENSE =
-        "net.zerobandwidth.android.apps.poppycock.ui.MainActivity.LAST_NONSENSE" ;
+        "net.zer0bandwidth.android.apps.poppycock.ui.MainActivity.LAST_NONSENSE" ;
 
 /// Instance Members ///////////////////////////////////////////////////////////
 
     /**
      * A connection to the service which produces nonsense.
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     protected SimpleServiceConnection<PoppycockService> m_conn = null ;
 
@@ -109,7 +109,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
             ;
     }
 
-    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    /** @since zer0bandwidth-net/android-poppycock 1.0.1 (#2) */
     @Override
     public boolean onCreateOptionsMenu( Menu menu )
     {
@@ -124,7 +124,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
         bndlState.putParcelable( EXTRA_TAG_LAST_NONSENSE, m_oLastNonsense ) ;
     }
 
-    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    /** @since zer0bandwidth-net/android-poppycock 1.0.1 (#2) */
     @Override
     public void onDestroy()
     {
@@ -140,7 +140,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
     /**
      * Binds the activity to the {@link PoppycockService}.
      * @return (fluid)
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     protected MainActivity bindToService()
     {
@@ -151,7 +151,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
         return this ;
     }
 
-    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    /** @since zer0bandwidth-net/android-poppycock 1.0.1 (#2) */
     @Override
     public void onServiceConnected( SimpleServiceConnection<PoppycockService> conn )
     {
@@ -159,14 +159,14 @@ implements SimpleServiceConnection.Listener<PoppycockService>
         this.preserveLastNonsense() ;
     }
 
-    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    /** @since zer0bandwidth-net/android-poppycock 1.0.1 (#2) */
     @Override
     public void onServiceDisconnected( SimpleServiceConnection<PoppycockService> conn )
     { Log.d( LOG_TAG, "Disconnected from service." ) ; }
 
 /// AppCompatActivity //////////////////////////////////////////////////////////
 
-    /** @since zerobandwidth-net/android-poppycock 1.0.1 (#2) */
+    /** @since zer0bandwidth-net/android-poppycock 1.0.1 (#2) */
     @Override
     public boolean onOptionsItemSelected( MenuItem mi )
     {
@@ -195,7 +195,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	/**
 	 * Copies the contents of the current nonsense pane to the clipboard.
 	 * @param w the control that was tapped, if any (ignored)
-	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#4)
+	 * @since zer0bandwidth-net/android-poppycock 1.0.2 (#4)
 	 */
 	public void onCopyButtonClicked( View w )
 	{
@@ -216,7 +216,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	/**
      * Shares the current nonsense.
      * @param w the control that was tapped, if any (ignored)
-	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#4)
+	 * @since zer0bandwidth-net/android-poppycock 1.0.2 (#4)
      */
     public void onShareButtonClicked( View w )
     {
@@ -227,7 +227,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
 	/**
 	 * Shares the current nonsense to Twitter.
 	 * @param w the control that was tapped, if any (ignored)
-	 * @since zerobandwidth-net/android-poppycock 1.0.2 (#4)
+	 * @since zer0bandwidth-net/android-poppycock 1.0.2 (#4)
 	 */
 	public void onTweetButtonClicked( View w )
 	{
@@ -260,7 +260,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
      * Navigates to the screen where the user can view the historical record of
      * nonsense.
      * @param w the control that was tapped, if any (ignored)
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     public void openHistoryScreen( View w )
     { HistoryActivity.API.startHistoryActivity(this) ; }
@@ -269,7 +269,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
      * Ensures that any previous bit of nonsense that is already tracked by the
      * activity will be preserved for posterity.
      * @return (fluid)
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     protected MainActivity preserveLastNonsense()
     {
@@ -282,7 +282,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
      * Records a bit of nonsense in the annals of history.
      * @param o the sentence to be recorded
      * @return the recorded sentence, with its ID updated
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     protected Sentence recordForPosterity( Sentence o )
     {
@@ -319,7 +319,7 @@ implements SimpleServiceConnection.Listener<PoppycockService>
      * If we have previous nonsense which has not been added to the historical
      * record, then it will be preserved before it is clobbered.
      * @return the new nonsense
-     * @since zerobandwidth-net/android-poppycock 1.0.1 (#2)
+     * @since zer0bandwidth-net/android-poppycock 1.0.1 (#2)
      */
     protected String regenerateNonsense()
     {
